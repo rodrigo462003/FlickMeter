@@ -1,17 +1,21 @@
 package main
 
 import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/rodrigo462003/FlickMeter/handlers"
 )
 
 func main() {
-	// Create a new Echo instance
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
+
 	e := echo.New()
-
-	// Serve static files (index.html, styles.css, etc.) from the 'public' directory
-	e.Static("/", "./")
-
-	// Start the Echo server
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Static("/public", "./public")
+	e.GET("/", handlers.HomeHandler)
+	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }
-
