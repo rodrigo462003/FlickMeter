@@ -1,7 +1,7 @@
 
 [build]
-  cmd = "go build -o ./tmp/main main.go"
-  bin = "./tmp/main"
+  cmd = "go build -o tmp/main main.go"
+  bin = "tmp/main"
   dir = "."
   include_est = ["go"]
   exclude_dir = ["vendor"]

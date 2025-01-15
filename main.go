@@ -1,14 +1,17 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
-    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, Rodrigo")
-    })
-    http.ListenAndServe(":8080", nil)
+	// Create a new Echo instance
+	e := echo.New()
+
+	// Serve static files (index.html, styles.css, etc.) from the 'public' directory
+	e.Static("/", "./")
+
+	// Start the Echo server
+	e.Logger.Fatal(e.Start(":8080"))
 }
 
