@@ -1,9 +1,0 @@
-services:
-  flick_meter:
-    build:
-      dockerfile: Dockerfile
-      context: ./
-    volumes:
-      - ./:/FlickMeter
-    ports:
-    - 8080:8080
