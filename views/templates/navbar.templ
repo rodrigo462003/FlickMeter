@@ -1,0 +1,37 @@
+package templates
+
+templ navbar(isAuth bool) {
+<nav id="nav" class="w-full fixed flex items-center text-xl font-mono space-x-4 p-4 justify-end">
+    if !isAuth {
+    @button("Sign In")
+    @a("Register")
+    }
+</nav>
+<div class="bg-black h-[200vh]"></div>
+<script>
+    const navbar = document.getElementById('nav');
+    let isTransparent = true
+    window.addEventListener('scroll', function () {
+        if (!navbar) return;
+        const scrollValue = window.scrollY;
+        if (scrollValue > 0 && isTransparent) {
+            isTransparent = false
+            navbar.style.backgroundPosition = '0% -100%'
+            return
+        }
+        if (scrollValue === 0 && !isTransparent) {
+            navbar.style.backgroundPosition = '0% 0%';
+            isTransparent = true
+        }
+    }
+    );
+</script>
+}
+
+templ button(text string) {
+<button class="p-2 px-4 rounded-full text-white shadow-md shadow-gray-800 bg-indigo-700">{ text }</button>
+}
+
+templ a(text string) {
+<a class="p-2 px-4 cursor-pointer text-indigo-700">{ text }</a>
+}
