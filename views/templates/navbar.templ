@@ -1,14 +1,14 @@
 package templates
 
 templ navbar(isAuth bool) {
-<nav id="nav" class="w-full fixed flex items-center text-xl font-mono space-x-4 p-4 justify-end">
-    if !isAuth {
-    @button("Sign In")
-    @a("Register")
-    }
-</nav>
-<div class="bg-black h-[200vh]"></div>
-<script>
+	<nav id="nav" class="w-full fixed flex items-center text-xl font-mono space-x-6 p-4 justify-end">
+		if !isAuth {
+			@button("Sign In")
+			@a("Register")
+		}
+	</nav>
+	<div class="bg-black h-[200vh]"></div>
+	<script>
     const navbar = document.getElementById('nav');
     let isTransparent = true
     window.addEventListener('scroll', function () {
@@ -29,9 +29,15 @@ templ navbar(isAuth bool) {
 }
 
 templ button(text string) {
-<button class="p-2 px-4 rounded-full text-white shadow-md shadow-gray-800 bg-indigo-700">{ text }</button>
+	<button
+		hx-get="/signIn"
+		hx-target="#modalTarget"
+		class="py-2 px-4 rounded-full text-white shadow-md shadow-black bg-indigo-700"
+	>
+		{ text }
+	</button>
 }
 
 templ a(text string) {
-<a class="p-2 px-4 cursor-pointer text-indigo-700">{ text }</a>
+	<a class="cursor-pointer text-indigo-700">{ text }</a>
 }

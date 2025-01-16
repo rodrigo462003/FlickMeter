@@ -17,5 +17,6 @@ func main() {
 	e := echo.New()
 	e.Static("/public", "./public")
 	e.GET("/", handlers.HomeHandler)
+	e.GET("/signIn", handlers.SignInHandler)
 	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }
