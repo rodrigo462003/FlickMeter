@@ -1,5 +1,7 @@
 package templates
 
-templ Home() {
-    <h1>Hello World!</h1>
+templ Home(isAuth bool) {
+	@Base() {
+		@navbar(isAuth)
+	}
 }
