@@ -1,8 +1,9 @@
 package templates
 
 templ modal() {
-	<dialog class="overflow-hidden rounded-lg shadow-sm shadow-black" id="modal" hx-on::after-settle="toggleModal()"></dialog>
-	<script>
+<dialog class="w-3/4 md:w-[600px] overflow-hidden rounded-lg shadow-sm shadow-black" id="modal"
+    hx-on::after-settle="toggleModal()"></dialog>
+<script>
     function toggleModal() {
         const modal = document.getElementById('modal');
         const input = document.getElementById('email');
