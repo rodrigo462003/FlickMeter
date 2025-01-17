@@ -1,0 +1,5 @@
+package templates
+
+templ modal() {
+	<dialog id="modal" hx-on::after-settle="this.open ? this.close() : this.showModal();"></dialog>
+}
