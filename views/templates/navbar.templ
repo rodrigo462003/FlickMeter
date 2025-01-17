@@ -1,13 +1,23 @@
 package templates
 
+type htmx struct {
+	hxPath   string
+	hxTarget string
+	hxSwap   string
+	post     bool
+}
+
+func newHtmx(hxPath, hxTarget, hxSwap string, post bool) htmx {
+	return htmx{hxPath, hxTarget, hxSwap, post}
+}
+
 templ navbar(isAuth bool) {
-	<nav id="nav" class="w-full fixed flex items-center text-xl font-mono space-x-6 p-4 justify-end">
+	<nav id="nav" class="w-full fixed flex items-center text-xl font-mono font-extrabold space-x-6 p-4 justify-end">
 		if !isAuth {
-			@button("Sign In", "/signIn", "#modal", "", false)
-			@a("Register")
+			@button("button", "Sign In", newHtmx("/signIn", "#modal", "", false))
+			@anchorButton("button", "Register", newHtmx("/Register", "#modal", "", false))
 		}
 	</nav>
-	<div class="bg-black h-[200vh]"></div>
 	<script>
     const navbar = document.getElementById('nav');
     let isTransparent = true
@@ -28,21 +38,34 @@ templ navbar(isAuth bool) {
 </script>
 }
 
-templ button(text, hxPath, hxTarget, hxSwap string, post bool) {
+templ button(type_, text string, hx htmx) {
 	<button
-		if post {
-			hx-post={ hxPath }
+		type={ type_ }
+		if hx.post {
+			hx-post={ hx.hxPath }
 		} else {
-			hx-get={ hxPath }
+			hx-get={ hx.hxPath }
 		}
-		hx-target={ hxTarget }
-		hx-swap={ hxSwap }
-		class="py-2 px-4 rounded-full text-white shadow-md shadow-black bg-indigo-700"
+		hx-target={ hx.hxTarget }
+		hx-swap={ hx.hxSwap }
+		class="transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-md shadow-black bg-indigo-700"
 	>
 		{ text }
 	</button>
 }
 
-templ a(text string) {
-	<a class="cursor-pointer text-indigo-700">{ text }</a>
+templ anchorButton(type_, text string, hx htmx) {
+	<button
+		type={ type_ }
+		if hx.post {
+			hx-post={ hx.hxPath }
+		} else {
+			hx-get={ hx.hxPath }
+		}
+		hx-target={ hx.hxTarget }
+		hx-swap={ hx.hxSwap }
+		class="transition-transform active:scale-90 focus:outline-none hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-indigo-700"
+	>
+		{ text }
+	</button>
 }
