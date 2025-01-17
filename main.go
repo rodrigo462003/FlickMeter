@@ -19,5 +19,7 @@ func main() {
 	e.GET("/", handlers.HomeHandler)
 	e.GET("/signIn", handlers.SignInGetHandler)
 	e.POST("/signIn", handlers.SignInPostHandler)
+	e.GET("/register", handlers.RegisterGetHandler)
+	e.POST("/register", handlers.RegisterPostHandler)
 	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }

@@ -53,7 +53,7 @@ func navbar(isAuth bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = anchorButton("button", "Register", newHtmx("/Register", "#modal", "", false)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = anchorButton("button", "Register", newHtmx("/register", "#modal", "", false)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
