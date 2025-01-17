@@ -10,8 +10,12 @@ templ Base() {
 			<link rel="stylesheet" href="./public/styles.css"/>
 			<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
 		</head>
-		<body>
-			{ children... }
-		</body>
+		@BaseBody()
 	</html>
+}
+
+templ BaseBody() {
+	<body>
+		{ children... }
+	</body>
 }

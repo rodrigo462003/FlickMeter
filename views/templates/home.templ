@@ -1,8 +1,9 @@
 package templates
 
 templ Home(isAuth bool) {
-	@Base() {
+	@Base()
+	@BaseBody() {
 		@navbar(isAuth)
-		<div id="modalTarget"></div>
+		@modal()
 	}
 }
