@@ -15,7 +15,7 @@ templ navbar(isAuth bool) {
 	<nav id="nav" class="w-full fixed flex items-center text-xl font-mono font-extrabold space-x-6 p-4 justify-end">
 		if !isAuth {
 			@button("button", "Sign In", newHtmx("/signIn", "#modal", "", false))
-			@anchorButton("button", "Register", newHtmx("/Register", "#modal", "", false))
+			@anchorButton("button", "Register", newHtmx("/register", "#modal", "", false))
 		}
 	</nav>
 	<script>
