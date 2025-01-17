@@ -29,7 +29,7 @@ func modal() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dialog id=\"modal\" hx-on::after-settle=\"this.open ? this.close() : this.showModal();\"></dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dialog class=\"overflow-hidden rounded-lg shadow-sm shadow-black\" id=\"modal\" hx-on::after-settle=\"toggleModal()\"></dialog><script>\n    function toggleModal() {\n        const modal = document.getElementById('modal');\n        const input = document.getElementById('email');\n\n        if (modal.open) {\n            modal.close();\n        } else {\n            modal.showModal();\n            input.blur();\n        }\n    }\n</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

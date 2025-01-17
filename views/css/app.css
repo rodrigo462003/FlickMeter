@@ -7,3 +7,19 @@ nav {
     background-size: 100% 200%;
     transition: background 400ms ease-in-out;
 }
+
+dialog[open] {
+    animation: open 700ms forwards ease-out;
+}
+
+@keyframes open {
+    from {
+        opacity: 0;
+        transform: translateY(200%);
+    }
+
+    to {
+        opacity: 100;
+        transform: translateY(0);
+    }
+}

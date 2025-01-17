@@ -1,5 +1,18 @@
 package templates
 
 templ modal() {
-	<dialog id="modal" hx-on::after-settle="this.open ? this.close() : this.showModal();"></dialog>
+	<dialog class="overflow-hidden rounded-lg shadow-sm shadow-black" id="modal" hx-on::after-settle="toggleModal()"></dialog>
+	<script>
+    function toggleModal() {
+        const modal = document.getElementById('modal');
+        const input = document.getElementById('email');
+
+        if (modal.open) {
+            modal.close();
+        } else {
+            modal.showModal();
+            input.blur();
+        }
+    }
+</script>
 }
