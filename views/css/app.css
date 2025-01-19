@@ -33,7 +33,7 @@ dialog.closing {
 @keyframes open {
     from {
         opacity: 0;
-        transform: translateY(200%);
+        transform: translateY(100vw);
     }
 
     to {
@@ -50,6 +50,6 @@ dialog.closing {
 
     to {
         opacity: 0;
-        transform: translateY(200%);
+        transform: translateY(100vw);
     }
 }
