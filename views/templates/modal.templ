@@ -4,16 +4,33 @@ templ modal() {
 <dialog class="w-3/4 md:w-[600px] overflow-hidden rounded-lg shadow-sm shadow-black" id="modal"
     hx-on::after-settle="toggleModal()"></dialog>
 <script>
+    const modal = document.getElementById('modal');
+    modal.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            toggleModal();
+        }
+    });
+
     function toggleModal() {
-        const modal = document.getElementById('modal');
+        if (modal.open) {
+            document.getElementById('submit').disabled = true
+            modal.addEventListener('animationend', function () {
+                modal.close();
+                modal.classList.remove('closing');
+            }, {once: true});
+
+            modal.classList.add('closing');
+            return
+        }
+
         const input = document.getElementById('email');
 
-        if (modal.open) {
-            modal.close();
-        } else {
-            modal.showModal();
-            input.blur();
-        }
+        modal.addEventListener('animationend', function () {
+            input.focus();
+        }, {once: true});
+        modal.showModal();
+        input.blur();
     }
 </script>
 }
