@@ -8,8 +8,26 @@ nav {
     transition: background 400ms ease-in-out;
 }
 
+dialog[open]::backdrop {
+    transition: background-color 600ms;
+    background-color: rgb(0 0 0 / 25%);
+
+    @starting-style {
+        background-color: rgb(0 0 0 / 0);
+    }
+}
+
+dialog.closing::backdrop {
+    transition: background-color 600ms;
+    background-color: rgb(0 0 0 / 0);
+}
+
 dialog[open] {
-    animation: open 700ms forwards ease-out;
+    animation: open 600ms forwards ease;
+}
+
+dialog.closing {
+    animation: close 600ms forwards ease-in;
 }
 
 @keyframes open {
@@ -19,7 +37,19 @@ dialog[open] {
     }
 
     to {
-        opacity: 100;
+        opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes close {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(200%);
     }
 }
