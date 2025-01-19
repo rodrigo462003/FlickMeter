@@ -7,10 +7,10 @@ templ SignIn() {
 <h1>Flickmeter</h1>
 }
 @form() {
-@input("Email", "email", "email", "name@flickmeter.com", "email", true)
+@input("Email / Username", "text", "username", "e.g. johndoe48 / john@flickmeter.com", "username", true)
 @input("Password", "password", "password", "", "current-password", true)
 @checkbox("remember", "Remember me")
-@button("submit", "submit", "Sign In", newHtmx("signIn", "body", "", true))
+@button("submit", "submit", "Sign In", newHtmx("/signIn", "body", "", true))
 }
 }
 }
@@ -33,7 +33,7 @@ templ input(labelTxt, type_, id, placeholder, autocomplete string, required bool
         class="select-none px-1 absolute left-2 transform -translate-y-2.5 block bg-white text-sm font-medium">
         { labelTxt }
     </label>
-    <input type={ type_ } id={ id } autocomplete={ autocomplete }
+    <input type={ type_ } id={ id } name={ id } autocomplete={ autocomplete }
         class="text-gray-950 text-sm border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none focus:outline-indigo-700 block w-full p-2"
         placeholder={ placeholder } if required { required } />
 </div>
@@ -41,10 +41,12 @@ templ input(labelTxt, type_, id, placeholder, autocomplete string, required bool
 
 templ checkbox(id, labelTxt string) {
 <div class="flex items-start">
-    <input id={ id } type="checkbox" value=""
+    <input id={ id } type="checkbox" name={ id } value=""
         class="peer h-4 w-4 cursor-pointer focus:outline-none focus:outline-offset-1 focus:outline-indigo-700 appearance-none rounded border border-indigo-700 checked:bg-indigo-700 " />
-    <label for={ id } class="whitespace-nowrap select-none ms-2 text-sm font-medium">{ labelTxt }</label>
-    <span
+    <label for={ id } class=" relative bottom-[2px] whitespace-nowrap select-none ms-2 text-sm font-medium">
+        { labelTxt }
+    </label>
+    <span aria-hidden="true"
         class="absolute transition-all text-white opacity-0 peer-checked:opacity-100 transform translate-y-[1px] translate-x-[1px] pointer-events-none">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"
             stroke="currentColor" stroke-width="1">
