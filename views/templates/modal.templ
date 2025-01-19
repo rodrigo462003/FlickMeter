@@ -1,21 +1,32 @@
 package templates
 
 templ modal() {
-<dialog class="w-3/4 md:w-[600px] overflow-hidden rounded-lg shadow-sm shadow-black" id="modal"
-    hx-on::after-settle="toggleModal()"></dialog>
-<script>
+	<dialog
+		tabindex="-1"
+		class="focus:outline-none w-3/4 md:w-[600px] overflow-hidden rounded-lg shadow-md shadow-black"
+		id="modal"
+		hx-on::after-settle="toggleModal()"
+	></dialog>
+	<script>
     const modal = document.getElementById('modal');
     modal.addEventListener('keydown', event => {
         if (event.key === 'Escape') {
             event.preventDefault();
+
+            const isAnimationRunning = !modal.classList.contains('closing') && modal.getAnimations().some(animation => animation.playState === 'running');
+            if (isAnimationRunning) {
+                modal.addEventListener('animationend', () => {toggleModal();}, {once: true});
+                return
+            }
             toggleModal();
         }
     });
 
     function toggleModal() {
         if (modal.open) {
+            modal.focus()
             document.getElementById('submit').disabled = true
-            modal.addEventListener('animationend', function () {
+            modal.addEventListener('animationend', () => {
                 modal.close();
                 modal.classList.remove('closing');
             }, {once: true});
@@ -30,7 +41,7 @@ templ modal() {
             input.focus();
         }, {once: true});
         modal.showModal();
-        input.blur();
+        modal.focus();
     }
 </script>
 }
