@@ -1,5 +1,22 @@
 package templates
 
 templ Register() {
-<form></form>
+@formContainer() {
+@formTitleContainer() {
+<h1 class="text-7xl">Join</h1>
+<h1>Flickmeter</h1>
+}
+@form() {
+@input("Username", "text", "username", "JohnDoe48", "username", true)
+@input("Email", "email", "email", "name@flickmeter.com", "email", true)
+@input("Password", "password", "password", "", "new-password", true)
+@button("submit", "submit", "Register", newHtmx("register", "body", "", true))
+}
+}
+}
+
+templ formTitleContainer() {
+<div class="uppercase font-extrabold text-3xl text-wrap text-center flex-1 sm:flex-0 sm:w-5/12 text-indigo-700">
+    { children... }
+</div>
 }
