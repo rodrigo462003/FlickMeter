@@ -8,9 +8,10 @@ templ Register() {
 }
 @form() {
 @input("Username", "text", "username", "JohnDoe48", "username", true)
-@input("Email", "email", "email", "name@flickmeter.com", "email", true)
+@input("Email", "email", "email", "john@flickmeter.com", "email", true)
 @input("Password", "password", "password", "", "new-password", true)
-@button("submit", "submit", "Register", newHtmx("register", "body", "", true))
+@input("Confirm Password", "password", "confirm", "", "off", true)
+@button("submit", "submit", "Register", newHtmx("/register", "body", "", true))
 }
 }
 }
