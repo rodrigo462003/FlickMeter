@@ -1,21 +1,10 @@
 package templates
 
-type htmx struct {
-hxPath string
-hxTarget string
-hxSwap string
-post bool
-}
-
-func newHtmx(hxPath, hxTarget, hxSwap string, post bool) htmx {
-return htmx{hxPath, hxTarget, hxSwap, post}
-}
-
 templ navbar(isAuth bool) {
 <nav id="nav" class="w-full fixed flex items-center text-xl font-mono font-extrabold space-x-6 p-4 justify-end">
     if !isAuth {
-    @button("", "button", "Sign In", newHtmx("/signIn", "#modal", "", false))
-    @anchorButton("button", "Register", newHtmx("/register", "#modal", "", false))
+    @button("", "button", "Sign In", newHtmx("/signIn", "", "#modal", "", "", false))
+    @anchorButton("button", "Register", newHtmx("/register", "", "#modal", "", "", false))
     }
 </nav>
 <script>
@@ -36,20 +25,4 @@ templ navbar(isAuth bool) {
     }
     );
 </script>
-}
-
-templ button(id string, type_, text string, hx htmx) {
-<button id={ id } type={ type_ } if hx.post { hx-post={ hx.hxPath } } else { hx-get={ hx.hxPath } } hx-target={
-    hx.hxTarget } hx-swap={ hx.hxSwap }
-    class="whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-md shadow-black bg-indigo-700">
-    { text }
-</button>
-}
-
-templ anchorButton(type_, text string, hx htmx) {
-<button type={ type_ } if hx.post { hx-post={ hx.hxPath } } else { hx-get={ hx.hxPath } } hx-target={ hx.hxTarget }
-    hx-swap={ hx.hxSwap }
-    class="transition-transform active:scale-90 focus:outline-none hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-indigo-700">
-    { text }
-</button>
 }

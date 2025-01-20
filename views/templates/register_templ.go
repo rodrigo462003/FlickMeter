@@ -79,7 +79,8 @@ func Register() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = input("Username", "text", "username", "JohnDoe48", "username", true).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = inputValid("Username", "text", "username", "JohnDoe48", "username", true,
+					newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -87,7 +88,8 @@ func Register() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = input("Email", "email", "email", "john@flickmeter.com", "email", true).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = inputValid("Email", "email", "email", "john@flickmeter.com", "email", true,
+					newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -95,7 +97,8 @@ func Register() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = input("Password", "password", "password", "", "new-password", true).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = inputValid("Password", "password", "password", "", "new-password", true,
+					newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -103,7 +106,8 @@ func Register() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = input("Confirm Password", "password", "confirm", "", "off", true).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = inputValid("Confirm Password", "password", "confirm", "", "off", true,
+					newHtmx("/register/confirm", "confirm", "#confirmErr", "#confirmErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -111,7 +115,7 @@ func Register() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = button("submit", "submit", "Register", newHtmx("/register", "body", "", true)).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = button("submit", "submit", "Register", newHtmx("/register", "", "body", "", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -124,43 +128,6 @@ func Register() templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = formContainer().Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func formTitleContainer() templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var5 == nil {
-			templ_7745c5c3_Var5 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"uppercase font-extrabold text-3xl text-wrap text-center flex-1 sm:flex-0 sm:w-5/12 text-indigo-700\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var5.Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
