@@ -7,17 +7,15 @@ templ Register() {
 <h1>Flickmeter</h1>
 }
 @form() {
-@input("Username", "text", "username", "JohnDoe48", "username", true)
-@input("Email", "email", "email", "john@flickmeter.com", "email", true)
-@input("Password", "password", "password", "", "new-password", true)
-@input("Confirm Password", "password", "confirm", "", "off", true)
-@button("submit", "submit", "Register", newHtmx("/register", "body", "", true))
+@inputValid("Username", "text", "username", "JohnDoe48", "username", true,
+newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
+@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true,
+newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
+@inputValid("Password", "password", "password", "", "new-password", true,
+newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
+@inputValid("Confirm Password", "password", "confirm", "", "off", true,
+newHtmx("/register/confirm", "confirm", "#confirmErr", "#confirmErr", "", true))
+@button("submit", "submit", "Register", newHtmx("/register", "", "body", "", "", true))
 }
 }
-}
-
-templ formTitleContainer() {
-<div class="uppercase font-extrabold text-3xl text-wrap text-center flex-1 sm:flex-0 sm:w-5/12 text-indigo-700">
-    { children... }
-</div>
 }

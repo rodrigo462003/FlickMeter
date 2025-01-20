@@ -21,5 +21,7 @@ func main() {
 	e.POST("/signIn", handlers.SignInPostHandler)
 	e.GET("/register", handlers.RegisterGetHandler)
 	e.POST("/register", handlers.RegisterPostHandler)
+	e.POST("/register/username", handlers.UsernamePostHandler)
+	e.POST("/register", handlers.RegisterPostHandler)
 	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }
