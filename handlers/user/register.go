@@ -1,4 +1,4 @@
-package handlers
+package userHandler
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	"github.com/labstack/echo/v4"
+	h "github.com/rodrigo462003/FlickMeter/handlers"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
 
@@ -57,11 +58,11 @@ func (u username) isValid() (bool, string) {
 	return true, ""
 }
 
-func RegisterGetHandler(c echo.Context) error {
-	return Render(c, http.StatusOK, templates.Register())
+func (uH UserHandler) GetRegister(c echo.Context) error {
+	return h.Render(c, http.StatusOK, templates.Register())
 }
 
-func RegisterPostHandler(c echo.Context) error {
+func (uH UserHandler)PostRegister(c echo.Context) error {
 	var rForm registerForm
 	err := c.Bind(&rForm)
 	if err != nil {
@@ -69,14 +70,14 @@ func RegisterPostHandler(c echo.Context) error {
 	}
 
 	if valid, messages := rForm.isValid(); !valid {
-		return Render(c, http.StatusUnprocessableEntity, templates.Home(messages.Username == "2"))
+		return h.Render(c, http.StatusUnprocessableEntity, templates.Home(messages.Username == "2"))
 	}
 	fmt.Println(rForm)
 
-	return Render(c, http.StatusCreated, templates.BaseBody())
+	return h.Render(c, http.StatusCreated, templates.BaseBody())
 }
 
-func UsernamePostHandler(c echo.Context) error {
+func (uH UserHandler) PostUsername(c echo.Context) error {
 	username := username(c.FormValue("username"))
 	if valid, message := username.isValid(); !valid {
 		return c.String(http.StatusUnprocessableEntity, message)
