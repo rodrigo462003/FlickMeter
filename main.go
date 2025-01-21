@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/rodrigo462003/FlickMeter/handlers"
+	uH "github.com/rodrigo462003/FlickMeter/handlers/user"
 )
 
 func main() {
@@ -17,11 +18,13 @@ func main() {
 	e := echo.New()
 	e.Static("/public", "./public")
 	e.GET("/", handlers.HomeHandler)
-	e.GET("/signIn", handlers.SignInGetHandler)
-	e.POST("/signIn", handlers.SignInPostHandler)
-	e.GET("/register", handlers.RegisterGetHandler)
-	e.POST("/register", handlers.RegisterPostHandler)
-	e.POST("/register/username", handlers.UsernamePostHandler)
-	e.POST("/register", handlers.RegisterPostHandler)
+
+	userH := uH.UserHandler{}
+	e.GET("/signIn", userH.GetSignIn)
+	e.POST("/signIn", userH.PostSignIn)
+	e.GET("/register", userH.GetRegister)
+	e.POST("/register", userH.PostRegister)
+	e.POST("/register/username", userH.PostUsername)
+
 	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }
