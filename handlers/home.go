@@ -7,6 +7,6 @@ import (
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
 
-func HomeHandler(c echo.Context) error {
+func GetHome(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.Home(false))
 }

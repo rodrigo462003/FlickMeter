@@ -3,13 +3,27 @@ package userHandler
 import (
 	"fmt"
 	"net/http"
+	"net/mail"
 	"strconv"
 	"unicode"
 
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
-	h "github.com/rodrigo462003/FlickMeter/handlers"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
+
+func Render(ctx echo.Context, statusCode int, t templ.Component) error {
+	buf := templ.GetBuffer()
+	defer templ.ReleaseBuffer(buf)
+
+	if err := t.Render(ctx.Request().Context(), buf); err != nil {
+		return err
+	}
+
+	return ctx.HTML(statusCode, buf.String())
+}
+
+type username string
 
 type registerForm struct {
 	Username username `form:"username"`
@@ -27,13 +41,12 @@ type vMessages struct {
 
 func (rForm registerForm) isValid() (bool, vMessages) {
 	vm := vMessages{}
-	if valid, message := rForm.Username.isValid(); !valid {
+	valid, message := rForm.Username.isValid()
+	if !valid {
 		vm.Username = message
 	}
 	return true, vMessages{}
 }
-
-type username string
 
 func (u username) isValid() (bool, string) {
 	const maxLen = 15
@@ -55,14 +68,15 @@ func (u username) isValid() (bool, string) {
 		}
 		return false, fmt.Sprint(string(r), " is not allowed.")
 	}
+
 	return true, ""
 }
 
 func (uH UserHandler) GetRegister(c echo.Context) error {
-	return h.Render(c, http.StatusOK, templates.Register())
+	return Render(c, http.StatusOK, templates.Register())
 }
 
-func (uH UserHandler)PostRegister(c echo.Context) error {
+func (uH UserHandler) PostRegister(c echo.Context) error {
 	var rForm registerForm
 	err := c.Bind(&rForm)
 	if err != nil {
@@ -70,17 +84,51 @@ func (uH UserHandler)PostRegister(c echo.Context) error {
 	}
 
 	if valid, messages := rForm.isValid(); !valid {
-		return h.Render(c, http.StatusUnprocessableEntity, templates.Home(messages.Username == "2"))
+		return Render(c, http.StatusUnprocessableEntity, templates.Home(messages.Username == "2"))
 	}
 	fmt.Println(rForm)
 
-	return h.Render(c, http.StatusCreated, templates.BaseBody())
+	return Render(c, http.StatusCreated, templates.BaseBody())
 }
 
-func (uH UserHandler) PostUsername(c echo.Context) error {
+func (uH *UserHandler) PostUsername(c echo.Context) error {
 	username := username(c.FormValue("username"))
 	if valid, message := username.isValid(); !valid {
 		return c.String(http.StatusUnprocessableEntity, message)
 	}
+
+	alreadyExists, err := uH.us.UserNameExists(string(username))
+	if err != nil {
+		c.NoContent(http.StatusInternalServerError)
+		panic(err)
+	}
+	if alreadyExists {
+		return c.String(http.StatusConflict, "Username already exists.")
+	}
+
+	return c.String(http.StatusOK, "")
+}
+
+func (uH *UserHandler) PostEmail(c echo.Context) error {
+	emailS := c.FormValue("email")
+	if len(emailS) < 1 {
+		return c.String(http.StatusUnprocessableEntity, "Email address is required.")
+	}
+
+	email, err := mail.ParseAddress(emailS)
+	if err != nil {
+		return c.String(http.StatusUnprocessableEntity, "This is not a valid email address.")
+	}
+
+	emailS = email.Address
+	alreadyExists, err := uH.us.EmailExists(emailS)
+	if err != nil {
+		c.NoContent(http.StatusInternalServerError)
+		panic(err)
+	}
+	if alreadyExists {
+		return c.String(http.StatusConflict, "Email already exists.")
+	}
+
 	return c.String(http.StatusOK, "")
 }

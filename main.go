@@ -6,25 +6,28 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/rodrigo462003/FlickMeter/db"
 	"github.com/rodrigo462003/FlickMeter/handlers"
-	uH "github.com/rodrigo462003/FlickMeter/handlers/user"
 )
 
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
+	connSTR := os.Getenv("CONN_STR")
+	d := db.New(connSTR)
+	h := handlers.NewHandler(d)
 
 	e := echo.New()
 	e.Static("/public", "./public")
-	e.GET("/", handlers.HomeHandler)
+	e.GET("/", handlers.GetHome)
 
-	userH := uH.UserHandler{}
-	e.GET("/signIn", userH.GetSignIn)
-	e.POST("/signIn", userH.PostSignIn)
-	e.GET("/register", userH.GetRegister)
-	e.POST("/register", userH.PostRegister)
-	e.POST("/register/username", userH.PostUsername)
+	e.GET("/signIn", h.UserHandler.GetSignIn)
+	e.POST("/signIn", h.UserHandler.PostSignIn)
+	e.GET("/register", h.UserHandler.GetRegister)
+	e.POST("/register", h.UserHandler.PostRegister)
+	e.POST("/register/username", h.UserHandler.PostUsername)
+	e.POST("/register/email", h.UserHandler.PostEmail)
 
 	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }
