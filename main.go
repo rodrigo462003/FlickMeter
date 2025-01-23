@@ -28,6 +28,7 @@ func main() {
 	e.POST("/register", h.UserHandler.PostRegister)
 	e.POST("/register/username", h.UserHandler.PostUsername)
 	e.POST("/register/email", h.UserHandler.PostEmail)
+	e.POST("/register/password", h.UserHandler.PostPassword)
 
 	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }

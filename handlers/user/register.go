@@ -23,12 +23,10 @@ func Render(ctx echo.Context, statusCode int, t templ.Component) error {
 	return ctx.HTML(statusCode, buf.String())
 }
 
-type username string
-
 type registerForm struct {
 	Username username `form:"username"`
-	Email    string   `form:"email"`
-	Password string   `form:"password"`
+	Email    email    `form:"email"`
+	Password password `form:"password"`
 	Confirm  string   `form:"confirm"`
 }
 
@@ -48,13 +46,15 @@ func (rForm registerForm) isValid() (bool, vMessages) {
 	return true, vMessages{}
 }
 
+type username string
+
 func (u username) isValid() (bool, string) {
 	const maxLen = 15
 	if len(u) > maxLen {
-		return false, fmt.Sprint("Username must have at most ", strconv.Itoa(maxLen), " characters.")
+		return false, fmt.Sprint("* Username must have at most ", strconv.Itoa(maxLen), " characters.")
 	}
-	if len(u) < 1 {
-		return false, "Username is required."
+	if len(u) == 0 {
+		return false, "* Username is required."
 	}
 	for _, r := range u {
 		if unicode.IsDigit(r) {
@@ -66,7 +66,7 @@ func (u username) isValid() (bool, string) {
 		if r == '_' {
 			continue
 		}
-		return false, fmt.Sprint(string(r), " is not allowed.")
+		return false, fmt.Sprint("* ", string(r), " is not allowed.")
 	}
 
 	return true, ""
@@ -87,7 +87,6 @@ func (uH UserHandler) PostRegister(c echo.Context) error {
 		return Render(c, http.StatusUnprocessableEntity, templates.Home(messages.Username == "2"))
 	}
 	fmt.Println(rForm)
-
 	return Render(c, http.StatusCreated, templates.BaseBody())
 }
 
@@ -103,32 +102,78 @@ func (uH *UserHandler) PostUsername(c echo.Context) error {
 		panic(err)
 	}
 	if alreadyExists {
-		return c.String(http.StatusConflict, "Username already exists.")
+		return c.String(http.StatusConflict, "* Username already exists.")
 	}
 
-	return c.String(http.StatusOK, "")
+	return c.NoContent(http.StatusOK)
+}
+
+type email string
+
+func (e email) isValid() (bool, string) {
+	if len(e) == 0 {
+		return false, "* Email address is required."
+	}
+
+	if _, err := mail.ParseAddress(string(e)); err != nil {
+		return false, "* This is not a valid email address."
+	}
+
+	return true, ""
 }
 
 func (uH *UserHandler) PostEmail(c echo.Context) error {
-	emailS := c.FormValue("email")
-	if len(emailS) < 1 {
-		return c.String(http.StatusUnprocessableEntity, "Email address is required.")
+	emailS := email(c.FormValue("email"))
+	if valid, message := emailS.isValid(); !valid {
+		return c.String(http.StatusUnprocessableEntity, message)
 	}
 
-	email, err := mail.ParseAddress(emailS)
-	if err != nil {
-		return c.String(http.StatusUnprocessableEntity, "This is not a valid email address.")
-	}
-
-	emailS = email.Address
-	alreadyExists, err := uH.us.EmailExists(emailS)
+	alreadyExists, err := uH.us.EmailExists(string(emailS))
 	if err != nil {
 		c.NoContent(http.StatusInternalServerError)
 		panic(err)
 	}
 	if alreadyExists {
-		return c.String(http.StatusConflict, "Email already exists.")
+		return c.String(http.StatusConflict, "* This email is already registered.")
 	}
 
-	return c.String(http.StatusOK, "")
+	return c.NoContent(http.StatusOK)
+}
+
+type password string
+
+func (p password) isValid() (bool, string) {
+	n := len(p)
+	if n < 8 {
+		return false, "* Password must contain atleast 8 characters."
+	}
+
+	if n > 64 {
+		return false, "* Password must contain at most 64 characters."
+	}
+
+	const MinPrintableASCII = 32
+	const MaxPrintableASCII = unicode.MaxASCII - 1
+	for _, c := range p {
+		if c > MaxPrintableASCII || c < MinPrintableASCII {
+			return false, fmt.Sprintf("* Your password must not contain: '%c'. Use only letters, numbers, and common symbols like !, @, #, *, (, ), etc.", c)
+		}
+	}
+
+	return true, ""
+}
+
+func (uH *UserHandler) PostPassword(c echo.Context) error {
+	password := password(c.FormValue("password"))
+	if valid, message := password.isValid(); !valid {
+		c.String(http.StatusUnprocessableEntity, message)
+		return Render(c, http.StatusUnprocessableEntity, templates.Oob("confirmErr", ""))
+	}
+
+	confirm := c.FormValue("confirm")
+	if string(password) != confirm && len(confirm) > 0 {
+		return Render(c, http.StatusConflict, templates.Oob("confirmErr", "* Passwords don't match."))
+	}
+
+	return Render(c, http.StatusOK, templates.Oob("confirmErr", ""))
 }

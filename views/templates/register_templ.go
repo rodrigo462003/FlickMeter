@@ -98,7 +98,7 @@ func Register() templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = inputValid("Password", "password", "password", "", "new-password", true,
-					newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
+					newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -107,7 +107,7 @@ func Register() templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = inputValid("Confirm Password", "password", "confirm", "", "off", true,
-					newHtmx("/register/confirm", "confirm", "#confirmErr", "#confirmErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
+					newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
