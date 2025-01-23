@@ -1,21 +1,21 @@
 package templates
 
 templ Register() {
-@formContainer() {
-@formTitleContainer() {
-<h1 class="text-7xl">Join</h1>
-<h1>Flickmeter</h1>
-}
-@form() {
-@inputValid("Username", "text", "username", "JohnDoe48", "username", true,
-newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
-@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true,
-newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
-@inputValid("Password", "password", "password", "", "new-password", true,
-newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
-@inputValid("Confirm Password", "password", "confirm", "", "off", true,
-newHtmx("/register/confirm", "confirm", "#confirmErr", "#confirmErr", "", true))
-@button("submit", "submit", "Register", newHtmx("/register", "", "body", "", "", true))
-}
-}
+	@formContainer() {
+		@formTitleContainer() {
+			<h1 class="text-7xl">Join</h1>
+			<h1>Flickmeter</h1>
+		}
+		@form() {
+			@inputValid("Username", "text", "username", "JohnDoe48", "username", true,
+				newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
+			@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true,
+				newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
+			@inputValid("Password", "password", "password", "", "new-password", true,
+				newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
+			@inputValid("Confirm Password", "password", "confirm", "", "off", true,
+				newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
+			@button("submit", "submit", "Register", newHtmx("/register", "", "body", "", "", true))
+		}
+	}
 }
