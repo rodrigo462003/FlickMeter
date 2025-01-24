@@ -79,7 +79,7 @@ func SignIn() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = input("Email / Username", "text", "username", "e.g. johndoe48 / john@flickmeter.com", "username", true).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = input("Email", "email", "email", "john@flickmeter.com", "email", true).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

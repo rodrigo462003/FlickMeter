@@ -7,7 +7,7 @@ templ SignIn() {
 			<h1>Flickmeter</h1>
 		}
 		@form() {
-			@input("Email / Username", "text", "username", "e.g. johndoe48 / john@flickmeter.com", "username", true)
+			@input("Email", "email", "email", "john@flickmeter.com", "email", true)
 			@input("Password", "password", "password", "", "current-password", true)
 			@checkbox("remember", "Remember me")
 			@button("submit", "submit", "Sign In", newHtmx("/signIn", "", "body","", "", true))

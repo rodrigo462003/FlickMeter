@@ -1,6 +1,7 @@
 package store
 
 import (
+	"github.com/rodrigo462003/FlickMeter/model"
 	"gorm.io/gorm"
 )
 
@@ -14,19 +15,9 @@ func NewUserStore(db *gorm.DB) *UserStore {
 	}
 }
 
-func (us UserStore) UserNameExists(username string) (bool, error) {
+func (us UserStore) UserNameExists(username model.ValidUsername) (bool, error) {
 	var exists bool
-	err := us.db.Raw("SELECT EXISTS (SELECT 1 FROM users WHERE username = ?)", username).Scan(&exists).Error
-	if err != nil {
-		return false, err
-	}
-
-	return exists, nil
-}
-
-func (us UserStore) EmailExists(username string) (bool, error) {
-	var exists bool
-	err := us.db.Raw("SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)", username).Scan(&exists).Error
+	err := us.db.Raw("SELECT EXISTS (SELECT 1 FROM users WHERE LOWER(username) = LOWER(?))", username.String()).Scan(&exists).Error
 	if err != nil {
 		return false, err
 	}

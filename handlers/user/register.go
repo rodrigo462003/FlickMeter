@@ -1,14 +1,12 @@
 package userHandler
 
 import (
-	"fmt"
 	"net/http"
-	"net/mail"
-	"strconv"
-	"unicode"
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
+	"github.com/rodrigo462003/FlickMeter/model"
+	"github.com/rodrigo462003/FlickMeter/store"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
 
@@ -24,52 +22,55 @@ func Render(ctx echo.Context, statusCode int, t templ.Component) error {
 }
 
 type registerForm struct {
-	Username username `form:"username"`
-	Email    email    `form:"email"`
-	Password password `form:"password"`
-	Confirm  string   `form:"confirm"`
+	Username string `form:"username"`
+	Email    string `form:"email"`
+	Password string `form:"password"`
+	Confirm  string `form:"confirm"`
 }
 
-type vMessages struct {
-	Username string
-	Email    string
-	Password string
-	Confirm  string
-}
+func (rForm registerForm) isValid(us store.UserStore) (map[string]string, int) {
+	vm := make(map[string]string)
+	statusCode := http.StatusOK
 
-func (rForm registerForm) isValid() (bool, vMessages) {
-	vm := vMessages{}
-	valid, message := rForm.Username.isValid()
-	if !valid {
-		vm.Username = message
-	}
-	return true, vMessages{}
-}
-
-type username string
-
-func (u username) isValid() (bool, string) {
-	const maxLen = 15
-	if len(u) > maxLen {
-		return false, fmt.Sprint("* Username must have at most ", strconv.Itoa(maxLen), " characters.")
-	}
-	if len(u) == 0 {
-		return false, "* Username is required."
-	}
-	for _, r := range u {
-		if unicode.IsDigit(r) {
-			continue
+	vUsername, err := model.NewUsername(rForm.Username)
+	if err != nil {
+		vm["username"] = err.Error()
+		statusCode = http.StatusUnprocessableEntity
+	} else {
+		alreadyExists, err := us.UserNameExists(vUsername)
+		if err != nil {
+			return vm, http.StatusInternalServerError
 		}
-		if unicode.IsLetter(r) {
-			continue
+		if alreadyExists {
+			vm["username"] = "* Username already taken."
+			if statusCode != http.StatusUnprocessableEntity {
+				statusCode = http.StatusConflict
+			}
 		}
-		if r == '_' {
-			continue
-		}
-		return false, fmt.Sprint("* ", string(r), " is not allowed.")
 	}
 
-	return true, ""
+	vEmail, err := model.NewEmail(rForm.Email)
+	if err != nil {
+		vm["email"] = err.Error()
+		statusCode = http.StatusUnprocessableEntity
+	}
+
+	password := rForm.Password
+	vPassword, err := model.NewPassword(password)
+	if err != nil {
+		vm["password"] = err.Error()
+		statusCode = http.StatusUnprocessableEntity
+	}
+
+	confirm := rForm.Confirm
+	if password != confirm && len(confirm) > 0 {
+		vm["confirm"] = "* Passwords don't match."
+		statusCode = http.StatusUnprocessableEntity
+	}
+
+	_ = model.NewUser(vUsername, vEmail, vPassword)
+
+	return vm, statusCode
 }
 
 func (uH UserHandler) GetRegister(c echo.Context) error {
@@ -83,96 +84,56 @@ func (uH UserHandler) PostRegister(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if valid, messages := rForm.isValid(); !valid {
-		return Render(c, http.StatusUnprocessableEntity, templates.Home(messages.Username == "2"))
+	vm, statusCode := rForm.isValid(*uH.us)
+	if statusCode == http.StatusInternalServerError {
+		return c.NoContent(http.StatusInternalServerError)
 	}
-	fmt.Println(rForm)
-	return Render(c, http.StatusCreated, templates.BaseBody())
+
+	if statusCode != http.StatusOK {
+		Render(c, statusCode, templates.FormInvalid(vm))
+	}
+
+	return c.NoContent(http.StatusCreated)
 }
 
 func (uH *UserHandler) PostUsername(c echo.Context) error {
-	username := username(c.FormValue("username"))
-	if valid, message := username.isValid(); !valid {
-		return c.String(http.StatusUnprocessableEntity, message)
+	username, err := model.NewUsername(c.FormValue("username"))
+	if err != nil {
+		return c.String(http.StatusUnprocessableEntity, err.Error())
 	}
 
-	alreadyExists, err := uH.us.UserNameExists(string(username))
+	alreadyExists, err := uH.us.UserNameExists(username)
 	if err != nil {
 		c.NoContent(http.StatusInternalServerError)
-		panic(err)
+		c.Logger().Error(err)
 	}
 	if alreadyExists {
-		return c.String(http.StatusConflict, "* Username already exists.")
+		return c.String(http.StatusConflict, "* Username already taken.")
 	}
 
 	return c.NoContent(http.StatusOK)
-}
-
-type email string
-
-func (e email) isValid() (bool, string) {
-	if len(e) == 0 {
-		return false, "* Email address is required."
-	}
-
-	if _, err := mail.ParseAddress(string(e)); err != nil {
-		return false, "* This is not a valid email address."
-	}
-
-	return true, ""
 }
 
 func (uH *UserHandler) PostEmail(c echo.Context) error {
-	emailS := email(c.FormValue("email"))
-	if valid, message := emailS.isValid(); !valid {
-		return c.String(http.StatusUnprocessableEntity, message)
-	}
-
-	alreadyExists, err := uH.us.EmailExists(string(emailS))
+	_, err := model.NewEmail(c.FormValue("email"))
 	if err != nil {
-		c.NoContent(http.StatusInternalServerError)
-		panic(err)
-	}
-	if alreadyExists {
-		return c.String(http.StatusConflict, "* This email is already registered.")
+		return c.String(http.StatusUnprocessableEntity, err.Error())
 	}
 
 	return c.NoContent(http.StatusOK)
 }
 
-type password string
-
-func (p password) isValid() (bool, string) {
-	n := len(p)
-	if n < 8 {
-		return false, "* Password must contain atleast 8 characters."
-	}
-
-	if n > 64 {
-		return false, "* Password must contain at most 64 characters."
-	}
-
-	const MinPrintableASCII = 32
-	const MaxPrintableASCII = unicode.MaxASCII - 1
-	for _, c := range p {
-		if c > MaxPrintableASCII || c < MinPrintableASCII {
-			return false, fmt.Sprintf("* Your password must not contain: '%c'. Use only letters, numbers, and common symbols like !, @, #, *, (, ), etc.", c)
-		}
-	}
-
-	return true, ""
-}
-
 func (uH *UserHandler) PostPassword(c echo.Context) error {
-	password := password(c.FormValue("password"))
-	if valid, message := password.isValid(); !valid {
-		c.String(http.StatusUnprocessableEntity, message)
+	password := c.FormValue("password")
+	_, err := model.NewPassword(password)
+	if err != nil {
+		c.String(http.StatusUnprocessableEntity, err.Error())
 		return Render(c, http.StatusUnprocessableEntity, templates.Oob("confirmErr", ""))
 	}
 
 	confirm := c.FormValue("confirm")
-	if string(password) != confirm && len(confirm) > 0 {
-		return Render(c, http.StatusConflict, templates.Oob("confirmErr", "* Passwords don't match."))
+	if password != confirm && len(confirm) > 0 {
+		return Render(c, http.StatusUnprocessableEntity, templates.Oob("confirmErr", "* Passwords don't match."))
 	}
 
 	return Render(c, http.StatusOK, templates.Oob("confirmErr", ""))

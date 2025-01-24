@@ -7,15 +7,29 @@ templ Register() {
 			<h1>Flickmeter</h1>
 		}
 		@form() {
-			@inputValid("Username", "text", "username", "JohnDoe48", "username", true,
+			@inputValid("Username", "text", "username", "JohnDoe48", "username", true, "",
 				newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
-			@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true,
+			@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, "",
 				newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
-			@inputValid("Password", "password", "password", "", "new-password", true,
+			@inputValid("Password", "password", "password", "", "new-password", true, "",
 				newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
-			@inputValid("Confirm Password", "password", "confirm", "", "off", true,
+			@inputValid("Confirm Password", "password", "confirm", "", "off", true, "",
 				newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
-			@button("submit", "submit", "Register", newHtmx("/register", "", "body", "", "", true))
+			@button("submit", "submit", "Register", newHtmx("/register", "", "body", "#form", "outerHTML", true))
 		}
+	}
+}
+
+templ FormInvalid(vm map[string]string) {
+	@form() {
+		@inputValid("Username", "text", "username", "JohnDoe48", "username", true, vm["username"],
+			newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
+		@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, vm["email"],
+			newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
+		@inputValid("Password", "password", "password", "", "new-password", true, vm["password"],
+			newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
+		@inputValid("Confirm Password", "password", "confirm", "", "off", true, vm["confirm"],
+			newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
+		@button("submit", "submit", "Register", newHtmx("/register", "", "body", "#form", "outerHTML", true))
 	}
 }
