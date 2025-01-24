@@ -1,24 +1,26 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/rodrigo462003/FlickMeter/db"
 	"github.com/rodrigo462003/FlickMeter/handlers"
 )
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	connSTR := os.Getenv("CONN_STR")
 	d := db.New(connSTR)
 	h := handlers.NewHandler(d)
 
 	e := echo.New()
+	e.Debug = true
+	e.Use(middleware.Secure())
 	e.Static("/public", "./public")
 	e.GET("/", handlers.GetHome)
 

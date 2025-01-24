@@ -22,24 +22,9 @@ templ button(id string, type_, text string, hx htmx) {
 		} else {
 			hx-get={ hx.hxPath }
 		}
-		hx-target={ hx.hxTarget }
-		hx-swap={ hx.hxSwap }
-		class="whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-md shadow-black bg-indigo-700"
-	>
-		{ text }
-	</button>
-}
-
-templ buttonModal(id string, type_, text string, hx htmx) {
-	<button
-		id={ id }
-		type={ type_ }
-		if hx.post {
-			hx-post={ hx.hxPath }
-		} else {
-			hx-get={ hx.hxPath }
-		}
-		hx-target={ hx.hxTarget }
+		hx-target-201={ hx.hxTarget }
+		hx-target-422={ hx.hxTargetErr }
+		hx-target-409={ hx.hxTargetErr }
 		hx-swap={ hx.hxSwap }
 		class="whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-md shadow-black bg-indigo-700"
 	>
@@ -81,7 +66,7 @@ templ form() {
 	</form>
 }
 
-templ inputValid(labelTxt, type_, id, placeholder, autocomplete string, required bool, hx htmx) {
+templ inputValid(labelTxt, type_, id, placeholder, autocomplete string, required bool, message string, hx htmx) {
 	<div class="relative">
 		<input
 			hx-target={ hx.hxTarget }
@@ -106,7 +91,7 @@ templ inputValid(labelTxt, type_, id, placeholder, autocomplete string, required
 			}
 		/>
 		@label(id, labelTxt)
-		<div class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full" id={ id + "Err" }></div>
+		<div class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full" id={ id + "Err" }>{message}</div>
 	</div>
 }
 
