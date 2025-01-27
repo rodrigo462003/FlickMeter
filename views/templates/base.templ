@@ -16,7 +16,7 @@ templ Base() {
 }
 
 templ BaseBody() {
-	<body>
+	<body hx-ext="response-targets">
 		{ children... }
 	</body>
 }

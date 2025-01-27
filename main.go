@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rodrigo462003/FlickMeter/db"
 	"github.com/rodrigo462003/FlickMeter/handlers"
+	"github.com/rodrigo462003/FlickMeter/store"
 )
 
 func main() {
@@ -16,7 +17,8 @@ func main() {
 	}
 	connSTR := os.Getenv("CONN_STR")
 	d := db.New(connSTR)
-	h := handlers.NewHandler(d)
+	us := store.NewUserStore(d)
+	h := handlers.NewHandler(us)
 
 	e := echo.New()
 	e.Debug = true
