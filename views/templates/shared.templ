@@ -22,6 +22,7 @@ templ button(id string, type_, text string, hx htmx) {
 		} else {
 			hx-get={ hx.hxPath }
 		}
+		hx-target={ hx.hxTarget }
 		hx-target-201={ hx.hxTarget }
 		hx-target-422={ hx.hxTargetErr }
 		hx-target-409={ hx.hxTargetErr }
@@ -61,7 +62,7 @@ templ formContainer() {
 }
 
 templ form() {
-	<form hx-ext="response-targets" id="form" class="w-full flex flex-col flex-grow sm:w-2/3 text-indigo-700 space-y-4">
+	<form id="form" class="w-full flex flex-col flex-grow sm:w-2/3 text-indigo-700 space-y-4">
 		{ children... }
 	</form>
 }
@@ -79,6 +80,7 @@ templ inputValid(labelTxt, type_, id, placeholder, autocomplete string, required
 			} else {
 				hx-get={ hx.hxPath }
 			}
+			hx-trigger="keyup changed delay:1s"
 			hx-params={ hx.hxParams }
 			type={ type_ }
 			id={ id }
@@ -91,7 +93,9 @@ templ inputValid(labelTxt, type_, id, placeholder, autocomplete string, required
 			}
 		/>
 		@label(id, labelTxt)
-		<div class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full" id={ id + "Err" }>{message}</div>
+		<div class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full" id={ id + "Err" }>
+			{ message }
+		</div>
 	</div>
 }
 
