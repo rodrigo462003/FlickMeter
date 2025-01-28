@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rodrigo462003/FlickMeter/db"
+	"github.com/rodrigo462003/FlickMeter/email"
 	"github.com/rodrigo462003/FlickMeter/handlers"
 	"github.com/rodrigo462003/FlickMeter/store"
 )
@@ -16,9 +17,16 @@ func main() {
 		panic(err)
 	}
 	connSTR := os.Getenv("CONN_STR")
+
+	gmailPw := os.Getenv("GMAIL_APP_PW")
+	from := os.Getenv("EMAIL")
+	host := os.Getenv("EMAIL_HOST")
+	port := os.Getenv("EMAIL_PORT")
+
+	es := email.NewMailSender(from, gmailPw, host, port)
 	d := db.New(connSTR)
 	us := store.NewUserStore(d)
-	h := handlers.NewHandler(us)
+	h := handlers.NewHandler(us, es)
 
 	e := echo.New()
 	e.Debug = true

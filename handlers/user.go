@@ -4,23 +4,25 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rodrigo462003/FlickMeter/email"
 	"github.com/rodrigo462003/FlickMeter/model"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
 
 type UserHandler struct {
-	userStore model.UserStore
+	userStore   model.UserStore
+	emailSender email.EmailSender
 }
 
-func NewUserHandler(us model.UserStore) *UserHandler {
-	return &UserHandler{userStore: us}
+func NewUserHandler(us model.UserStore, es email.EmailSender) *UserHandler {
+	return &UserHandler{us, es}
 }
 
-func (uH UserHandler) GetSignIn(c echo.Context) error {
+func (uh UserHandler) GetSignIn(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.SignIn())
 }
 
-func (uH UserHandler) PostSignIn(c echo.Context) error {
+func (uh UserHandler) PostSignIn(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.BaseBody())
 }
 
@@ -31,18 +33,18 @@ type registerForm struct {
 	Confirm  string `form:"confirm"`
 }
 
-func (uH UserHandler) GetRegister(c echo.Context) error {
+func (uh UserHandler) GetRegister(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.Register())
 }
 
-func (uH UserHandler) PostRegister(c echo.Context) error {
+func (uh UserHandler) PostRegister(c echo.Context) error {
 	var rForm registerForm
 	err := c.Bind(&rForm)
 	if err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	uErr := model.NewUser(rForm.Username, rForm.Email, rForm.Password, rForm.Confirm, uH.userStore)
+	uErr := model.NewUser(rForm.Username, rForm.Email, rForm.Password, rForm.Confirm, uh.userStore, uh.emailSender)
 	if uErr != nil {
 		if uErr.StatusCode() == http.StatusInternalServerError {
 			return c.NoContent(uErr.StatusCode())
@@ -59,8 +61,8 @@ func (uH UserHandler) PostRegister(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-func (uH *UserHandler) PostUsername(c echo.Context) error {
-	err := model.ValidUsername(c.FormValue("username"), uH.userStore)
+func (uh *UserHandler) PostUsername(c echo.Context) error {
+	err := model.ValidUsername(c.FormValue("username"), uh.userStore)
 	if err != nil {
 		if err.StatusCode() == http.StatusInternalServerError {
 			c.NoContent(err.StatusCode())
@@ -71,7 +73,7 @@ func (uH *UserHandler) PostUsername(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (uH *UserHandler) PostEmail(c echo.Context) error {
+func (uh *UserHandler) PostEmail(c echo.Context) error {
 	err := model.ValidEmail(c.FormValue("email"))
 	if err != nil {
 		return c.String(err.StatusCode(), err.Error())
@@ -80,7 +82,7 @@ func (uH *UserHandler) PostEmail(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (uH *UserHandler) PostPassword(c echo.Context) error {
+func (uh *UserHandler) PostPassword(c echo.Context) error {
 	password := c.FormValue("password")
 	confirm := c.FormValue("confirm")
 	err, isDifferent := model.ValidPassword(password, confirm)
