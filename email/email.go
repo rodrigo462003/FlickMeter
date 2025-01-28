@@ -10,7 +10,6 @@ type EmailSender interface {
 
 type emailSender struct {
 	from string
-	pw   string
 	addr string
 	auth smtp.Auth
 }
@@ -18,7 +17,7 @@ type emailSender struct {
 func NewMailSender(from, pw, host, port string) EmailSender {
 	auth := smtp.PlainAuth("", from, pw, host)
 	addr := host + ":" + port
-	return &emailSender{from, pw, addr, auth}
+	return &emailSender{from, addr, auth}
 }
 
 func (e *emailSender) SendMail(to string, message string) error {
