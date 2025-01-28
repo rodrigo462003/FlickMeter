@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
+	"github.com/rodrigo462003/FlickMeter/email"
 	"github.com/rodrigo462003/FlickMeter/model"
 )
 
@@ -10,9 +11,9 @@ type Handler struct {
 	UserHandler UserHandler
 }
 
-func NewHandler(us model.UserStore) *Handler {
+func NewHandler(us model.UserStore, es email.EmailSender) *Handler {
 	return &Handler{
-		UserHandler: *NewUserHandler(us),
+		UserHandler: *NewUserHandler(us,es),
 	}
 }
 

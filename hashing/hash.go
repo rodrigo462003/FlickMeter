@@ -2,12 +2,13 @@ package hashing
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 
 	"golang.org/x/crypto/argon2"
 )
 
-func HashPassword(p []byte) ([]byte, error) {
+func HashPassword(p []byte) (string, error) {
 	const (
 		time    = 1
 		memory  = 64 * 1024
@@ -17,12 +18,16 @@ func HashPassword(p []byte) ([]byte, error) {
 
 	salt, err := generateSalt()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	hash := argon2.IDKey(p, salt, time, memory, threads, keyLen)
+	encodedSalt := base64.StdEncoding.EncodeToString(salt)
+	encodedHash := base64.StdEncoding.EncodeToString(hash)
 
-	return hash, nil
+	result := fmt.Sprintf("argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", argon2.Version, memory, time, threads, encodedSalt, encodedHash)
+
+	return result, nil
 }
 
 func generateSalt() ([]byte, error) {

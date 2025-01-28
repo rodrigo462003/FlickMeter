@@ -2,10 +2,13 @@ package model
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/mail"
 	"unicode/utf8"
 
+	"github.com/rodrigo462003/FlickMeter/email"
+	"github.com/rodrigo462003/FlickMeter/hashing"
 	"gorm.io/gorm"
 )
 
@@ -18,7 +21,7 @@ type User struct {
 
 type UserStore interface {
 	UserNameExists(string) (bool, error)
-	Create(*User) error
+	Create(*User) *CreateUserError
 }
 
 type UserErrors interface {
@@ -34,6 +37,12 @@ type userErrors struct {
 	statusCode int
 }
 
+type CreateUserError struct {
+	Username error
+	Email    error
+	Other    error
+}
+
 func (ue userErrors) Errors() userErrors {
 	return ue
 }
@@ -42,18 +51,49 @@ func (ue userErrors) StatusCode() int {
 	return ue.statusCode
 }
 
-func NewUser(username, email, password, confirm string, us UserStore) UserErrors {
-	err := validUser(username, email, password, confirm, us)
+func (u *User) hashPassword() error {
+	hash, err := hashing.HashPassword([]byte(u.Password))
 	if err != nil {
 		return err
 	}
 
+	u.Password = hash
+	return nil
+}
+
+func NewUser(username, email, password, confirm string, us UserStore, es email.EmailSender) UserErrors {
+	errI := validUser(username, email, password, confirm, us)
+	if errI != nil {
+		return errI
+	}
+
 	user := &User{Username: username, Email: email, Password: password}
 
+	err := userErrors{}
+	if hashErr := user.hashPassword(); hashErr != nil {
+		err.statusCode = http.StatusInternalServerError
+		return err
+	}
+
+	emailContent := "Press the button to complete your registration."
 	if dbErr := us.Create(user); dbErr != nil {
-		errors := userErrors{}
-		errors.statusCode = http.StatusInternalServerError
-		return errors
+		if dbErr.Email != nil {
+			emailContent = "You already have an account, try logging in."
+		} else if dbErr.Username != nil {
+			err.Username = "Username is already taken."
+			err.statusCode = http.StatusConflict
+			return err
+		} else {
+			err.statusCode = http.StatusInternalServerError
+			return err
+		}
+	}
+
+	mailErr := es.SendMail(user.Email, emailContent)
+	if mailErr != nil {
+		log.Println(mailErr)
+		err.statusCode = http.StatusInternalServerError
+		return err
 	}
 
 	return nil
