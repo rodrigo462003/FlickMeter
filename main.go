@@ -10,6 +10,7 @@ import (
 	"github.com/rodrigo462003/FlickMeter/email"
 	"github.com/rodrigo462003/FlickMeter/handlers"
 	"github.com/rodrigo462003/FlickMeter/store"
+	"golang.org/x/time/rate"
 )
 
 func main() {
@@ -22,7 +23,6 @@ func main() {
 	from := os.Getenv("EMAIL")
 	host := os.Getenv("EMAIL_HOST")
 	port := os.Getenv("EMAIL_PORT")
-
 	es := email.NewMailSender(from, gmailPw, host, port)
 	d := db.New(connSTR)
 	us := store.NewUserStore(d)
@@ -31,6 +31,7 @@ func main() {
 	e := echo.New()
 	e.Debug = true
 	e.Use(middleware.Secure())
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(5))))
 	e.Static("/public", "./public")
 	e.GET("/", handlers.GetHome)
 
