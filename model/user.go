@@ -75,10 +75,10 @@ func NewUser(username, email, password, confirm string, us UserStore, es email.E
 		return err
 	}
 
-	emailContent := "Press the button to complete your registration."
+	emailBody := "Press the button to complete your registration."
 	if dbErr := us.Create(user); dbErr != nil {
 		if dbErr.Email != nil {
-			emailContent = "You already have an account, try logging in."
+			emailBody = "You already have an account, try logging in."
 		} else if dbErr.Username != nil {
 			err.Username = "Username is already taken."
 			err.statusCode = http.StatusConflict
@@ -89,7 +89,7 @@ func NewUser(username, email, password, confirm string, us UserStore, es email.E
 		}
 	}
 
-	mailErr := es.SendMail(user.Email, emailContent)
+	mailErr := es.SendMail(user.Email, "FlickMeter registration", emailBody)
 	if mailErr != nil {
 		log.Println(mailErr)
 		err.statusCode = http.StatusInternalServerError
