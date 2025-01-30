@@ -30,11 +30,10 @@ type registerForm struct {
 	Username string `form:"username"`
 	Email    string `form:"email"`
 	Password string `form:"password"`
-	Confirm  string `form:"confirm"`
 }
 
 func (uh UserHandler) GetRegister(c echo.Context) error {
-	return Render(c, http.StatusOK, templates.Register())
+	return Render(c, http.StatusOK, templates.FormVerifyCode("gsdagsdagsdafkljasdfjs@jglskdj"))
 }
 
 func (uh UserHandler) PostRegister(c echo.Context) error {
@@ -44,7 +43,7 @@ func (uh UserHandler) PostRegister(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	uErr := model.NewUser(rForm.Username, rForm.Email, rForm.Password, rForm.Confirm, uh.userStore, uh.emailSender)
+	uErr := model.NewUser(rForm.Username, rForm.Email, rForm.Password, uh.userStore, uh.emailSender)
 	if uErr != nil {
 		if uErr.StatusCode() == http.StatusInternalServerError {
 			return c.NoContent(uErr.StatusCode())
@@ -53,12 +52,11 @@ func (uh UserHandler) PostRegister(c echo.Context) error {
 			"username": uErr.Errors().Username,
 			"email":    uErr.Errors().Email,
 			"password": uErr.Errors().Password,
-			"confirm":  uErr.Errors().Confirm,
 		}
-		Render(c, uErr.StatusCode(), templates.FormInvalid(vm))
+		return Render(c, uErr.StatusCode(), templates.FormInvalid(vm))
 	}
 
-	return c.NoContent(http.StatusCreated)
+	return Render(c, http.StatusCreated, templates.FormVerifyCode(rForm.Email))
 }
 
 func (uh *UserHandler) PostUsername(c echo.Context) error {
@@ -84,15 +82,10 @@ func (uh *UserHandler) PostEmail(c echo.Context) error {
 
 func (uh *UserHandler) PostPassword(c echo.Context) error {
 	password := c.FormValue("password")
-	confirm := c.FormValue("confirm")
-	err, isDifferent := model.ValidPassword(password, confirm)
+	err := model.ValidPassword(password)
 	if err != nil {
-		if isDifferent {
-			return Render(c, http.StatusUnprocessableEntity, templates.Oob("confirmErr", "* Passwords don't match."))
-		}
-		c.String(err.StatusCode(), err.Error())
-		return Render(c, err.StatusCode(), templates.Oob("confirmErr", ""))
+		return c.String(err.StatusCode(), err.Error())
 	}
 
-	return Render(c, http.StatusOK, templates.Oob("confirmErr", ""))
+	return c.String(http.StatusOK, "")
 }

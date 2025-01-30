@@ -13,7 +13,7 @@ type Handler struct {
 
 func NewHandler(us model.UserStore, es email.EmailSender) *Handler {
 	return &Handler{
-		UserHandler: *NewUserHandler(us,es),
+		UserHandler: *NewUserHandler(us, es),
 	}
 }
 

@@ -2,7 +2,6 @@ package store
 
 import (
 	"errors"
-	"log"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/rodrigo462003/FlickMeter/model"
@@ -36,7 +35,6 @@ func (us *UserStore) Create(user *model.User) *model.CreateUserError {
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			switch pgErr.ConstraintName {
 			case "uni_users_email":
-				log.Println("USER EMAIL ERROR")
 				cUserErrors.Email = err
 			case "uni_users_username":
 				cUserErrors.Username = err
