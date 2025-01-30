@@ -1,8 +1,9 @@
 package model
 
 import (
+	"crypto/rand"
 	"fmt"
-	"log"
+	"math/big"
 	"net/http"
 	"net/mail"
 	"unicode/utf8"
@@ -17,6 +18,7 @@ type User struct {
 	Username string `gorm:"type:varchar(15);unique;not null"`
 	Email    string `gorm:"type:varchar(254);unique;not null"`
 	Password string `gorm:"type:varchar(255);not null"`
+	Verified bool   `gorm:"default:false;not null"`
 }
 
 type UserStore interface {
@@ -61,8 +63,10 @@ func (u *User) hashPassword() error {
 	return nil
 }
 
-func NewUser(username, email, password, confirm string, us UserStore, es email.EmailSender) UserErrors {
-	errI := validUser(username, email, password, confirm, us)
+func NewUser(username, email, password string, us UserStore, es email.EmailSender) UserErrors {
+	const emailSubject = "FlickMeter registration"
+
+	errI := validUser(username, email, password, us)
 	if errI != nil {
 		return errI
 	}
@@ -75,7 +79,17 @@ func NewUser(username, email, password, confirm string, us UserStore, es email.E
 		return err
 	}
 
-	emailBody := "Press the button to complete your registration."
+	random6 := ""
+	for i := 0; i < 6; i++ {
+		num, randErr := rand.Int(rand.Reader, big.NewInt(10))
+		if randErr != nil {
+			err.statusCode = http.StatusInternalServerError
+			return err
+		}
+		random6 += fmt.Sprintf("%d", num)
+	}
+
+	emailBody := fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%s", random6)
 	if dbErr := us.Create(user); dbErr != nil {
 		if dbErr.Email != nil {
 			emailBody = "You already have an account, try logging in."
@@ -89,17 +103,12 @@ func NewUser(username, email, password, confirm string, us UserStore, es email.E
 		}
 	}
 
-	mailErr := es.SendMail(user.Email, "FlickMeter registration", emailBody)
-	if mailErr != nil {
-		log.Println(mailErr)
-		err.statusCode = http.StatusInternalServerError
-		return err
-	}
+	es.SendMail(user.Email, emailSubject, emailBody)
 
 	return nil
 }
 
-func validUser(username, email, password, confirm string, us UserStore) UserErrors {
+func validUser(username, email, password string, us UserStore) UserErrors {
 	ue := userErrors{}
 	ue.statusCode = http.StatusOK
 
@@ -119,15 +128,10 @@ func validUser(username, email, password, confirm string, us UserStore) UserErro
 		ue.statusCode = http.StatusUnprocessableEntity
 	}
 
-	err, isDiff := ValidPassword(password, confirm)
+	err = ValidPassword(password)
 	if err != nil {
-		if isDiff {
-			ue.Confirm = err.Error()
-			ue.statusCode = http.StatusUnprocessableEntity
-		} else {
-			ue.Password = err.Error()
-			ue.statusCode = http.StatusUnprocessableEntity
-		}
+		ue.Password = err.Error()
+		ue.statusCode = http.StatusUnprocessableEntity
 	}
 	if ue.statusCode != http.StatusOK {
 		return ue
@@ -222,7 +226,7 @@ func ValidEmail(e string) ValidationError {
 	return nil
 }
 
-func ValidPassword(p string, c string) (ValidationError, bool) {
+func ValidPassword(p string) ValidationError {
 	const (
 		MaxLen = 128
 		MinLen = 8
@@ -230,18 +234,14 @@ func ValidPassword(p string, c string) (ValidationError, bool) {
 
 	n := utf8.RuneCountInString(p)
 	if n == 0 {
-		return newValidationError(http.StatusUnprocessableEntity, "* Password is required."), false
+		return newValidationError(http.StatusUnprocessableEntity, "* Password is required.")
 	}
 	if n > MaxLen {
-		return newValidationErrorf(http.StatusUnprocessableEntity, "* Password must contain at most %d characters.", MaxLen), false
+		return newValidationErrorf(http.StatusUnprocessableEntity, "* Password must contain at most %d characters.", MaxLen)
 	}
 	if n < MinLen {
-		return newValidationErrorf(http.StatusUnprocessableEntity, "* Password must contain atleast %d characters.", MinLen), false
+		return newValidationErrorf(http.StatusUnprocessableEntity, "* Password must contain atleast %d characters.", MinLen)
 	}
 
-	if p != c && len(c) > 0 {
-		return newValidationError(http.StatusUnprocessableEntity, "* Passwords don't match."), true
-	}
-
-	return nil, false
+	return nil
 }

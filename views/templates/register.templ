@@ -1,35 +1,90 @@
 package templates
 
 templ Register() {
-	@formContainer() {
-		@formTitleContainer() {
-			<h1 class="text-7xl">Join</h1>
-			<h1>Flickmeter</h1>
-		}
-		@form() {
-			@inputValid("Username", "text", "username", "JohnDoe48", "username", true, "",
-				newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
-			@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, "",
-				newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
-			@inputValid("Password", "password", "password", "", "new-password", true, "",
-				newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
-			@inputValid("Confirm Password", "password", "confirm", "", "off", true, "",
-				newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
-			@button("submit", "submit", "Register", newHtmx("/register", "", "body", "#form", "outerHTML", true))
-		}
-	}
+@formContainer() {
+@formTitleContainer() {
+<h1 class="text-7xl">Join</h1>
+<h1>Flickmeter</h1>
+}
+@form() {
+@inputValid("Username", "text", "username", "JohnDoe48", "username", true, "",
+newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
+@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, "",
+newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
+@inputValid("Password", "password", "password", "", "new-password", true, "",
+newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
+@button("submit", "submit", "Register", newHtmx("/register", "", "#form", "#form", "outerHTML", true))
+}
+}
 }
 
 templ FormInvalid(vm map[string]string) {
-	@form() {
-		@inputValid("Username", "text", "username", "JohnDoe48", "username", true, vm["username"],
-			newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
-		@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, vm["email"],
-			newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
-		@inputValid("Password", "password", "password", "", "new-password", true, vm["password"],
-			newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
-		@inputValid("Confirm Password", "password", "confirm", "", "off", true, vm["confirm"],
-			newHtmx("/register/password", "password, confirm", "#passwordErr", "#passwordErr", "", true))
-		@button("submit", "submit", "Register", newHtmx("/register", "", "body", "#form", "outerHTML", true))
-	}
+@form() {
+@inputValid("Username", "text", "username", "JohnDoe48", "username", true, vm["username"],
+newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
+@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, vm["email"],
+newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
+@inputValid("Password", "password", "password", "", "new-password", true, vm["password"],
+newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
+@button("submit", "submit", "Register", newHtmx("/register", "", "#form", "#form", "outerHTML", true))
+}
+}
+
+templ FormVerifyCode(email string) {
+<p class="text-center">
+    { email }
+</p>
+@formContainer() {
+@form() {
+<div class="flex justify-center flex-row space-x-3">
+    for range 6 {
+    @digitInput()
+    }
+    <script>
+        function moveFocus(e, input) {
+            if (e.key !== "Tab") {
+                e.preventDefault()
+            }
+            if (e.key === "Backspace" || e.key === "Delete") {
+                if (input.value.length === 0) {
+                    let prevInput = input.previousElementSibling;
+                    if (prevInput && prevInput.tagName === "INPUT") {
+                        prevInput.focus();
+                    }
+                } else {
+                    input.value = ""
+                    let prevInput = input.previousElementSibling;
+                    if (prevInput && prevInput.tagName === "INPUT") {
+                        prevInput.focus();
+                    }
+                }
+                return
+            }
+            const isNumber = /^[0-9]$/i.test(event.key)
+            if (isNumber) {
+                if (input.value.length === 1) {
+                    let nextInput = input.nextElementSibling;
+                    if (nextInput && nextInput.tagName === "INPUT") {
+                        nextInput.focus();
+                        nextInput.value = e.key;
+                    }
+                } else {
+                    input.value = e.key
+                    let nextInput = input.nextElementSibling;
+                    if (nextInput && nextInput.tagName === "INPUT") {
+                        nextInput.focus();
+                    }
+                }
+            }
+        }
+    </script>
+</div>
+}
+}
+}
+
+templ digitInput() {
+<input maxlength="1" class="peer w-16 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
+            placeholder:opacity-0 text-gray-800 text-sm border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none
+            focus:outline-indigo-700 p-2" onkeydown="moveFocus(event, this)" />
 }
