@@ -31,60 +31,74 @@ newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", tr
 }
 
 templ FormVerifyCode(email string) {
-<p class="text-center">
-    { email }
-</p>
-@formContainer() {
-@form() {
-<div class="flex justify-center flex-row space-x-3">
-    for range 6 {
-    @digitInput()
-    }
-    <script>
-        function moveFocus(e, input) {
-            if (e.key !== "Tab") {
-                e.preventDefault()
-            }
-            if (e.key === "Backspace" || e.key === "Delete") {
-                if (input.value.length === 0) {
-                    let prevInput = input.previousElementSibling;
-                    if (prevInput && prevInput.tagName === "INPUT") {
-                        prevInput.focus();
-                    }
-                } else {
-                    input.value = ""
-                    let prevInput = input.previousElementSibling;
-                    if (prevInput && prevInput.tagName === "INPUT") {
-                        prevInput.focus();
-                    }
+<div class="p-8 flex flex-col items-center justify-center space-y-10">
+    <div class="w-full">
+        <div class="w-full">
+            <div class="text-indigo-700 text-xl font-extrabold">
+                Enter your verification code
+            </div>
+            <div class="md:text-sm text-xs justify-start">
+                <div class="inline-block whitespace-nowrap">
+                    <pre>We sent a 6-digit code to </pre>
+                </div>
+                <div class="inline-block">
+                    { email }.
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="w-full flex flex-col items-center justify-center">
+        <form id="form" class="w-full flex flex-col flex-grow text-indigo-700 space-y-4">
+            <div class="w-full max-w-full flex space-x-2 md:space-x-4">
+                for range 6 {
+                @digitInput()
                 }
-                return
-            }
-            const isNumber = /^[0-9]$/i.test(event.key)
-            if (isNumber) {
-                if (input.value.length === 1) {
-                    let nextInput = input.nextElementSibling;
-                    if (nextInput && nextInput.tagName === "INPUT") {
-                        nextInput.focus();
-                        nextInput.value = e.key;
+                <script>
+                    function moveFocus(e, input) {
+                        if (e.key !== "Tab") {
+                            e.preventDefault()
+                        }
+                        if (e.key === "Backspace" || e.key === "Delete") {
+                            if (input.value.length === 0) {
+                                let prevInput = input.previousElementSibling;
+                                if (prevInput && prevInput.tagName === "INPUT") {
+                                    prevInput.focus();
+                                }
+                            } else {
+                                input.value = ""
+                                let prevInput = input.previousElementSibling;
+                                if (prevInput && prevInput.tagName === "INPUT") {
+                                    prevInput.focus();
+                                }
+                            }
+                            return
+                        }
+                        const isNumber = /^[0-9]$/i.test(event.key)
+                        if (isNumber) {
+                            if (input.value.length === 1) {
+                                let nextInput = input.nextElementSibling;
+                                if (nextInput && nextInput.tagName === "INPUT") {
+                                    nextInput.focus();
+                                    nextInput.value = e.key;
+                                }
+                            } else {
+                                input.value = e.key
+                                let nextInput = input.nextElementSibling;
+                                if (nextInput && nextInput.tagName === "INPUT") {
+                                    nextInput.focus();
+                                }
+                            }
+                        }
                     }
-                } else {
-                    input.value = e.key
-                    let nextInput = input.nextElementSibling;
-                    if (nextInput && nextInput.tagName === "INPUT") {
-                        nextInput.focus();
-                    }
-                }
-            }
-        }
-    </script>
+                </script>
+            </div>
+        </form>
+    </div>
 </div>
-}
-}
 }
 
 templ digitInput() {
-<input maxlength="1" class="peer w-16 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
-            placeholder:opacity-0 text-gray-800 text-sm border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none
+<input maxlength="1" class="w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
+            placeholder:opacity-0 text-gray-800 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none
             focus:outline-indigo-700 p-2" onkeydown="moveFocus(event, this)" />
 }

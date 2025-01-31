@@ -2,7 +2,7 @@ package templates
 
 templ modal() {
 <dialog tabindex="-1"
-    class="font-mono focus:outline-none w-3/4 md:w-[650px] overflow-hidden rounded-lg shadow-md shadow-black" id="modal"
+    class="font-mono w-3/4 md:w-[650px] focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black" id="modal"
     hx-on::after-settle="event.target.id === 'modal' ? toggleModal() : null"></dialog>
 <script>
     const modal = document.getElementById('modal');
