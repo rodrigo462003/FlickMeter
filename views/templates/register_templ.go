@@ -221,7 +221,7 @@ func FormVerifyCode(email string) templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"p-8 flex flex-col items-center justify-center space-y-10\"><div class=\"w-full\"><div class=\"w-full\"><div class=\"text-indigo-700 text-xl font-extrabold\">Enter your verification code</div><div class=\"md:text-sm text-xs justify-start\"><div class=\"inline-block whitespace-nowrap\"><pre>We sent a 6-digit code to </pre></div><div class=\"inline-block\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"p-8 flex flex-col items-center justify-center space-y-6\"><div class=\"w-full\"><div class=\"w-full\"><div class=\"text-indigo-700 text-xl sm:text-3xl font-extrabold\">Enter your verification code</div><div class=\"pt-2 md:text-sm text-gray-900 text-xs justify-start\"><div class=\"inline-block whitespace-nowrap\"><pre>We sent a 6-digit code to </pre></div><div class=\"inline-block font-bold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -234,7 +234,7 @@ func FormVerifyCode(email string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, ".</div></div></div></div><div class=\"w-full flex flex-col items-center justify-center\"><form id=\"form\" class=\"w-full flex flex-col flex-grow text-indigo-700 space-y-4\"><div class=\"w-full max-w-full flex space-x-2 md:space-x-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div></div></div><div class=\"w-full flex flex-col items-center items justify-center\"><form id=\"form\" class=\"w-full flex flex-col flex-grow text-indigo-700 space-y-4\"><div class=\"w-full max-w-full flex space-x-2 md:space-x-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -273,7 +273,7 @@ func digitInput() templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<input maxlength=\"1\" class=\"w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100\n            placeholder:opacity-0 text-gray-800 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none\n            focus:outline-indigo-700 p-2\" onkeydown=\"moveFocus(event, this)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<input maxlength=\"1\" class=\"w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100\n            placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none\n            focus:outline-indigo-700 p-2\" onkeydown=\"moveFocus(event, this)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

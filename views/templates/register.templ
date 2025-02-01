@@ -31,23 +31,23 @@ newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", tr
 }
 
 templ FormVerifyCode(email string) {
-<div class="p-8 flex flex-col items-center justify-center space-y-10">
+<div class="p-8 flex flex-col items-center justify-center space-y-6">
     <div class="w-full">
         <div class="w-full">
-            <div class="text-indigo-700 text-xl font-extrabold">
+            <div class="text-indigo-700 text-xl sm:text-3xl font-extrabold">
                 Enter your verification code
             </div>
-            <div class="md:text-sm text-xs justify-start">
+            <div class="pt-2 md:text-sm text-gray-900 text-xs justify-start">
                 <div class="inline-block whitespace-nowrap">
                     <pre>We sent a 6-digit code to </pre>
                 </div>
-                <div class="inline-block">
-                    { email }.
+                <div class="inline-block font-bold">
+                    { email }
                 </div>
             </div>
         </div>
     </div>
-    <div class="w-full flex flex-col items-center justify-center">
+    <div class="w-full flex flex-col items-center items justify-center">
         <form id="form" class="w-full flex flex-col flex-grow text-indigo-700 space-y-4">
             <div class="w-full max-w-full flex space-x-2 md:space-x-4">
                 for range 6 {
@@ -99,6 +99,6 @@ templ FormVerifyCode(email string) {
 
 templ digitInput() {
 <input maxlength="1" class="w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
-            placeholder:opacity-0 text-gray-800 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none
+            placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none
             focus:outline-indigo-700 p-2" onkeydown="moveFocus(event, this)" />
 }
