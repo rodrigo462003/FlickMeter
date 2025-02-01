@@ -54,11 +54,19 @@ templ FormVerifyCode(email string) {
                 @digitInput()
                 }
                 <script>
-                    function moveFocus(e, input) {
-                        if (e.key !== "Tab") {
-                            e.preventDefault()
+                    setupDigitInputs();
+                    function setupDigitInputs() {
+                        let digitInputs = document.getElementsByClassName('digitInput');
+                        for (const input of digitInputs) {
+                            input.addEventListener('beforeinput', event => {
+                                moveFocus(event, input)
+                            });
                         }
-                        if (e.key === "Backspace" || e.key === "Delete") {
+                    }
+
+                    function moveFocus(e, input) {
+                        e.preventDefault()
+                        if (e.inputType === "deleteContentBackward" || e.inputType === "deleteContentForward") {
                             if (input.value.length === 0) {
                                 let prevInput = input.previousElementSibling;
                                 if (prevInput && prevInput.tagName === "INPUT") {
@@ -73,16 +81,16 @@ templ FormVerifyCode(email string) {
                             }
                             return
                         }
-                        const isNumber = /^[0-9]$/i.test(event.key)
+                        const isNumber = /^[0-9]$/i.test(event.data)
                         if (isNumber) {
                             if (input.value.length === 1) {
                                 let nextInput = input.nextElementSibling;
                                 if (nextInput && nextInput.tagName === "INPUT") {
                                     nextInput.focus();
-                                    nextInput.value = e.key;
+                                    nextInput.value = e.data;
                                 }
                             } else {
-                                input.value = e.key
+                                input.value = e.data
                                 let nextInput = input.nextElementSibling;
                                 if (nextInput && nextInput.tagName === "INPUT") {
                                     nextInput.focus();
@@ -98,7 +106,7 @@ templ FormVerifyCode(email string) {
 }
 
 templ digitInput() {
-<input maxlength="1" class="w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
+<input maxlength="1" inputmode="numeric" class="digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
             placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none
-            focus:outline-indigo-700 p-2" onkeydown="moveFocus(event, this)" />
+            focus:outline-indigo-700 p-2" />
 }

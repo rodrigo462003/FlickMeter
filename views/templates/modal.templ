@@ -3,7 +3,7 @@ package templates
 templ modal() {
 <dialog tabindex="-1"
     class="font-mono w-3/4 md:w-[650px] focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black" id="modal"
-    hx-on::after-settle="event.target.id === 'modal' ? toggleModal() : null" onclick="closeModal(event, this)"></dialog>
+    hx-on::after-settle="event.target.id === 'modal' ? toggleModal() : null"></dialog>
 <script>
     const modal = document.getElementById('modal');
     modal.addEventListener('keydown', event => {
@@ -16,6 +16,15 @@ templ modal() {
 
     });
 
+    modal.addEventListener('click', event => {
+        if (!modal.open) {
+            return
+        }
+        if (event.target === modal) {
+            animationAndClose()
+        }
+    });
+
     function animationAndClose() {
         event.preventDefault();
 
@@ -25,12 +34,6 @@ templ modal() {
             return
         }
         toggleModal();
-    }
-
-    function closeModal(e, t) {
-        if (e.target === t) {
-            animationAndClose()
-        }
     }
 
     function toggleModal() {
