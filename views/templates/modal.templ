@@ -16,11 +16,11 @@ templ modal() {
 
     });
 
-    modal.addEventListener('click', event => {
+    modal.addEventListener('mousedown', event => {
         if (!modal.open) {
             return
         }
-        if (event.target === modal) {
+        if (event.buttons == 1 && event.target === modal) {
             animationAndClose()
         }
     });

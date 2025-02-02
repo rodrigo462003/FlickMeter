@@ -41,7 +41,7 @@ templ FormVerifyCode(email string) {
                 <div class="inline-block whitespace-nowrap">
                     <pre>We sent a 6-digit code to </pre>
                 </div>
-                <div class="inline-block font-bold">
+                <div class="border-none outline-0 inline-block font-bold">
                     { email }
                 </div>
             </div>
@@ -53,6 +53,7 @@ templ FormVerifyCode(email string) {
                 for range 6 {
                 @digitInput()
                 }
+                <input name="email" hidden value={ email } />
                 <script>
                     setupDigitInputs();
                     function setupDigitInputs() {
@@ -106,7 +107,8 @@ templ FormVerifyCode(email string) {
 }
 
 templ digitInput() {
-<input maxlength="1" inputmode="numeric" class="digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
+<input name="code" maxlength="1" hx-post="/register/verify" hx-trigger="beforeinput changed" hx-target="#form"
+    inputmode="numeric" class="digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
             placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none
             focus:outline-indigo-700 p-2" />
 }

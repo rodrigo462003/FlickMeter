@@ -31,7 +31,7 @@ func main() {
 	e := echo.New()
 	e.Debug = true
 	e.Use(middleware.Secure())
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(5))))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(6))))
 	e.Static("/public", "./public")
 	e.GET("/", handlers.GetHome)
 
@@ -42,6 +42,7 @@ func main() {
 	e.POST("/register/username", h.UserHandler.PostUsername)
 	e.POST("/register/email", h.UserHandler.PostEmail)
 	e.POST("/register/password", h.UserHandler.PostPassword)
+	e.POST("/register/verify", h.UserHandler.PostVerify)
 
 	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }
