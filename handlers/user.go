@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rodrigo462003/FlickMeter/email"
@@ -57,6 +58,23 @@ func (uh UserHandler) PostRegister(c echo.Context) error {
 	}
 
 	return Render(c, http.StatusCreated, templates.FormVerifyCode(rForm.Email))
+}
+
+func (uh *UserHandler) PostVerify(c echo.Context) error {
+	err := c.Request().ParseForm()
+	if err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	code := c.Request().Form["code"]
+	if len(code) != 6 {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	codeString := strings.Join(code, "")
+	if len(codeString) != 6 {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (uh *UserHandler) PostUsername(c echo.Context) error {
