@@ -2,8 +2,8 @@ package store
 
 import (
 	"errors"
+	"fmt"
 
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/rodrigo462003/FlickMeter/model"
 	"gorm.io/gorm"
 )
@@ -28,21 +28,36 @@ func (us *UserStore) UserNameExists(username string) (bool, error) {
 	return exists, nil
 }
 
-func (us *UserStore) Create(user *model.User) *model.CreateUserError {
-	var pgErr *pgconn.PgError
-	if err := us.db.Create(user).Error; err != nil {
-		cUserErrors := model.CreateUserError{}
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			switch pgErr.ConstraintName {
-			case "uni_users_email":
-				cUserErrors.Email = err
-			case "uni_users_username":
-				cUserErrors.Username = err
-			}
-			return &cUserErrors
-		}
-		cUserErrors.Other = err
-		return &cUserErrors
+func (us *UserStore) Create(user *model.User) (uint, *model.CreateUserError) {
+	tempUser := model.User{Username: user.Username, Email: user.Email}
+
+	result := us.db.FirstOrCreate(&tempUser)
+	if result.Error != nil {
+		return 0, &model.CreateUserError{Other: errors.New("Failed to FirstOrCreate(User)")}
 	}
-	return nil
+	if result.RowsAffected == 1 {
+		return tempUser.ID, nil
+	}
+	fmt.Println(user, tempUser)
+
+	if !tempUser.Verified {
+		if tempUser.Email == user.Email {
+			return tempUser.ID, nil
+		}
+		if tempUser.Username == user.Username {
+			return 0, &model.CreateUserError{Username: errors.New("Username already exists.")}
+		}
+	} else {
+		if tempUser.Username == user.Username {
+			return 0, &model.CreateUserError{Username: errors.New("Username already exists.")}
+		}
+		if tempUser.Email == user.Email {
+			return 0, &model.CreateUserError{Email: errors.New("Email already exits.")}
+		}
+	}
+	return 0, &model.CreateUserError{Other: errors.New("Error creating user: this shouldnt be possible.")}
+}
+
+func (us *UserStore) CreateVerificationCode(vc *model.VerificationCode) error {
+	return us.db.Create(vc).Error
 }
