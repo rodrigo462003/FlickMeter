@@ -34,7 +34,7 @@ type registerForm struct {
 }
 
 func (uh UserHandler) GetRegister(c echo.Context) error {
-	return Render(c, http.StatusOK, templates.FormVerifyCode("gsdagsdagsdafkljasdfjs@jglskdj"))
+	return Render(c, http.StatusOK, templates.Register())
 }
 
 func (uh UserHandler) PostRegister(c echo.Context) error {

@@ -106,7 +106,7 @@ func Register() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = button("submit", "submit", "Register", newHtmx("/register", "", "#form", "#form", "outerHTML", true)).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = button("submit", "submit", "Register", newHtmx("/register", "", "#formContainer", "#form", "outerHTML", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -186,7 +186,7 @@ func FormInvalid(vm map[string]string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = button("submit", "submit", "Register", newHtmx("/register", "", "#form", "#form", "outerHTML", true)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = button("submit", "submit", "Register", newHtmx("/register", "", "#formContainer", "#form", "outerHTML", true)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

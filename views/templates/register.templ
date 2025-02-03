@@ -13,7 +13,7 @@ newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", tr
 newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
 @inputValid("Password", "password", "password", "", "new-password", true, "",
 newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
-@button("submit", "submit", "Register", newHtmx("/register", "", "#form", "#form", "outerHTML", true))
+@button("submit", "submit", "Register", newHtmx("/register", "", "#formContainer", "#form", "outerHTML", true))
 }
 }
 }
@@ -26,7 +26,7 @@ newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", tr
 newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
 @inputValid("Password", "password", "password", "", "new-password", true, vm["password"],
 newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
-@button("submit", "submit", "Register", newHtmx("/register", "", "#form", "#form", "outerHTML", true))
+@button("submit", "submit", "Register", newHtmx("/register", "", "#formContainer", "#form", "outerHTML", true))
 }
 }
 

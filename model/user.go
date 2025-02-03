@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"net/http"
 	"net/mail"
+	"time"
 	"unicode/utf8"
 
 	"github.com/rodrigo462003/FlickMeter/email"
@@ -15,15 +16,24 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"type:varchar(15);unique;not null"`
-	Email    string `gorm:"type:varchar(254);unique;not null"`
-	Password string `gorm:"type:varchar(255);not null"`
-	Verified bool   `gorm:"default:false;not null"`
+	Username          string             `gorm:"type:varchar(15);unique;not null"`
+	Email             string             `gorm:"type:varchar(254);unique;not null"`
+	Password          string             `gorm:"type:varchar(255);not null"`
+	Verified          bool               `gorm:"default:false;not null"`
+	VerificationCodes []VerificationCode `gorm:"foreignKey:UserID"`
+}
+
+type VerificationCode struct {
+	gorm.Model
+	UserID    uint      `gorm:"not null;index"`
+	Code      uint      `gorm:"not null"`
+	ExpiresAt time.Time `gorm:"not null"`
 }
 
 type UserStore interface {
 	UserNameExists(string) (bool, error)
-	Create(*User) *CreateUserError
+	Create(*User) (uint, *CreateUserError)
+	CreateVerificationCode(*VerificationCode) error
 }
 
 type UserErrors interface {
@@ -63,6 +73,30 @@ func (u *User) hashPassword() error {
 	return nil
 }
 
+func NewVerificationCode(userID uint, us UserStore) (uint, error) {
+	code := uint(0)
+	for i := 0; i < 6; i++ {
+		num, err := rand.Int(rand.Reader, big.NewInt(9))
+		if err != nil {
+			return 0, err
+		}
+		code = code*10 + uint(num.Uint64()) + 1
+	}
+
+	vc := &VerificationCode{
+		UserID:    userID,
+		Code:      uint(code),
+		ExpiresAt: time.Now().Add(15 * time.Minute),
+	}
+
+	err := us.CreateVerificationCode(vc)
+	if err != nil {
+		return 0, err
+	}
+
+	return code, nil
+}
+
 func NewUser(username, email, password string, us UserStore, es email.EmailSender) UserErrors {
 	const emailSubject = "FlickMeter registration"
 
@@ -73,35 +107,27 @@ func NewUser(username, email, password string, us UserStore, es email.EmailSende
 
 	user := &User{Username: username, Email: email, Password: password}
 
-	err := userErrors{}
 	if hashErr := user.hashPassword(); hashErr != nil {
-		err.statusCode = http.StatusInternalServerError
-		return err
+		return userErrors{statusCode: http.StatusInternalServerError}
 	}
 
-	random6 := ""
-	for i := 0; i < 6; i++ {
-		num, randErr := rand.Int(rand.Reader, big.NewInt(10))
-		if randErr != nil {
-			err.statusCode = http.StatusInternalServerError
-			return err
-		}
-		random6 += fmt.Sprintf("%d", num)
-	}
-
-	emailBody := fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%s", random6)
-	if dbErr := us.Create(user); dbErr != nil {
+	emailBody := "You already have an account, try logging in."
+	id, dbErr := us.Create(user)
+	if dbErr != nil {
 		if dbErr.Email != nil {
-			emailBody = "You already have an account, try logging in."
 		} else if dbErr.Username != nil {
-			err.Username = "Username is already taken."
-			err.statusCode = http.StatusConflict
-			return err
+			return userErrors{Username: "Username is already taken.", statusCode: http.StatusConflict}
 		} else {
-			err.statusCode = http.StatusInternalServerError
-			return err
+			return userErrors{statusCode: http.StatusInternalServerError}
 		}
 	}
+
+	code, codeErr := NewVerificationCode(id, us)
+	if codeErr != nil {
+		return userErrors{statusCode: http.StatusInternalServerError}
+	}
+
+	emailBody = fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%d", code)
 
 	es.SendMail(user.Email, emailSubject, emailBody)
 
