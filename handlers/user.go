@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -44,17 +45,13 @@ func (uh UserHandler) PostRegister(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	uErr := model.NewUser(rForm.Username, rForm.Email, rForm.Password, uh.userStore, uh.emailSender)
-	if uErr != nil {
-		if uErr.StatusCode() == http.StatusInternalServerError {
-			return c.NoContent(uErr.StatusCode())
+	if err := model.NewUser(rForm.Username, rForm.Email, rForm.Password, uh.userStore, uh.emailSender); err != nil {
+		var sErr model.StatusErrors
+		if errors.As(err, &sErr) {
+			vm := sErr.Map()
+			return Render(c, sErr.StatusCode(), templates.FormInvalid(vm))
 		}
-		vm := map[string]string{
-			"username": uErr.Errors().Username,
-			"email":    uErr.Errors().Email,
-			"password": uErr.Errors().Password,
-		}
-		return Render(c, uErr.StatusCode(), templates.FormInvalid(vm))
+		return c.String(err.StatusCode(), err.Error())
 	}
 
 	return Render(c, http.StatusCreated, templates.FormVerifyCode(rForm.Email))
@@ -80,9 +77,6 @@ func (uh *UserHandler) PostVerify(c echo.Context) error {
 func (uh *UserHandler) PostUsername(c echo.Context) error {
 	err := model.ValidUsername(c.FormValue("username"), uh.userStore)
 	if err != nil {
-		if err.StatusCode() == http.StatusInternalServerError {
-			c.NoContent(err.StatusCode())
-		}
 		return c.String(err.StatusCode(), err.Error())
 	}
 
