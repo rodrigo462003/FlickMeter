@@ -2,7 +2,9 @@ package model
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
+	"log/slog"
 	"math/big"
 	"net/http"
 	"net/mail"
@@ -32,35 +34,11 @@ type VerificationCode struct {
 
 type UserStore interface {
 	UserNameExists(string) (bool, error)
-	Create(*User) (uint, *CreateUserError)
+	// Creates and stores user, returns error with StatusError for internals and email conflict.
+	// Return StatusErrors with conflict if username taken in map.
+	Create(*User) StatusCoder
 	CreateVerificationCode(*VerificationCode) error
-}
-
-type UserErrors interface {
-	Errors() userErrors
-	StatusCode() int
-}
-
-type userErrors struct {
-	Username   string
-	Email      string
-	Password   string
-	Confirm    string
-	statusCode int
-}
-
-type CreateUserError struct {
-	Username error
-	Email    error
-	Other    error
-}
-
-func (ue userErrors) Errors() userErrors {
-	return ue
-}
-
-func (ue userErrors) StatusCode() int {
-	return ue.statusCode
+	GetUserByID(uint) (*User, error)
 }
 
 func (u *User) hashPassword() error {
@@ -73,8 +51,8 @@ func (u *User) hashPassword() error {
 	return nil
 }
 
-func NewVerificationCode(userID uint, us UserStore) (uint, error) {
-	code := uint(0)
+func newVerificationCode(userID uint, us UserStore) (uint, error) {
+	var code uint = 0
 	for i := 0; i < 6; i++ {
 		num, err := rand.Int(rand.Reader, big.NewInt(9))
 		if err != nil {
@@ -97,105 +75,134 @@ func NewVerificationCode(userID uint, us UserStore) (uint, error) {
 	return code, nil
 }
 
-func NewUser(username, email, password string, us UserStore, es email.EmailSender) UserErrors {
+func NewUser(username, email, password string, us UserStore, es email.EmailSender) StatusCoder {
 	const emailSubject = "FlickMeter registration"
 
-	errI := validUser(username, email, password, us)
-	if errI != nil {
-		return errI
+	if multiError := validUser(username, email, password, us); multiError != nil {
+		return multiError
 	}
 
 	user := &User{Username: username, Email: email, Password: password}
 
-	if hashErr := user.hashPassword(); hashErr != nil {
-		return userErrors{statusCode: http.StatusInternalServerError}
+	if err := user.hashPassword(); err != nil {
+		slog.Error(err.Error())
+		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
 	}
 
-	emailBody := "You already have an account, try logging in."
-	id, dbErr := us.Create(user)
-	if dbErr != nil {
-		if dbErr.Email != nil {
-		} else if dbErr.Username != nil {
-			return userErrors{Username: "Username is already taken.", statusCode: http.StatusConflict}
-		} else {
-			return userErrors{statusCode: http.StatusInternalServerError}
+	err := us.Create(user)
+	if err != nil {
+		var multiError StatusErrors
+		if errors.As(err, &multiError) {
+			return multiError
 		}
+		var sErr StatusError
+		if errors.As(err, &sErr) {
+			if sErr.code == http.StatusInternalServerError {
+				return sErr
+			}
+			emailBody := "You already have an account, try logging in."
+			es.SendMail(user.Email, emailSubject, emailBody)
+			return nil
+		}
+		slog.Error(fmt.Errorf("This is not suppposed to happen: %w", err).Error())
+		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
 	}
 
-	code, codeErr := NewVerificationCode(id, us)
+	if len(user.VerificationCodes) >= 5 {
+		return NewStatusError(http.StatusConflict, "Can't request more codes. Try again later.")
+	}
+
+	code, codeErr := newVerificationCode(user.ID, us)
 	if codeErr != nil {
-		return userErrors{statusCode: http.StatusInternalServerError}
+		slog.Error(codeErr.Error())
+		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
 	}
 
-	emailBody = fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%d", code)
+	emailBody := fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%d", code)
 
 	es.SendMail(user.Email, emailSubject, emailBody)
 
 	return nil
 }
 
-func validUser(username, email, password string, us UserStore) UserErrors {
-	ue := userErrors{}
-	ue.statusCode = http.StatusOK
+type mutliStatusCoder interface {
+	StatusCoder
+	Map() map[string]string
+}
 
-	err := ValidUsername(username, us)
-	if err != nil {
-		if err.StatusCode() == http.StatusInternalServerError {
-			ue.statusCode = err.StatusCode()
-			return ue
+type StatusErrors struct {
+	code     int
+	errorMap map[string]string
+}
+
+func (e StatusErrors) Error() string {
+	return fmt.Sprintln(e.errorMap)
+}
+
+func (e StatusErrors) StatusCode() int {
+	return e.code
+}
+
+func (e StatusErrors) Map() map[string]string {
+	return e.errorMap
+}
+
+func NewStatusErrors(code int, m map[string]string) *StatusErrors {
+	return &StatusErrors{code, m}
+}
+
+func validUser(username, email, password string, us UserStore) *StatusErrors {
+	errorMap := make(map[string]string, 3)
+	codes := make([]int, 0, len(errorMap))
+
+	if err := ValidUsername(username, us); err != nil {
+		errorMap["username"] = err.Error()
+		codes = append(codes, err.StatusCode())
+	}
+
+	if err := ValidEmail(email); err != nil {
+		errorMap["email"] = err.Error()
+		codes = append(codes, err.StatusCode())
+	}
+
+	if err := ValidPassword(password); err != nil {
+		errorMap["password"] = err.Error()
+		codes = append(codes, err.StatusCode())
+	}
+
+	if len(errorMap) == 0 {
+		return nil
+	}
+
+	statusCode := getPriorityStatusCode(codes)
+
+	return NewStatusErrors(statusCode, errorMap)
+}
+
+func getPriorityStatusCode(codes []int) int {
+	priority := [...]int{
+		http.StatusInternalServerError,
+		http.StatusConflict,
+		http.StatusUnprocessableEntity,
+	}
+
+	statusSet := make(map[int]struct{}, len(priority))
+	for _, code := range codes {
+		statusSet[code] = struct{}{}
+	}
+
+	statusCode := http.StatusInternalServerError
+	for _, code := range priority {
+		if _, ok := statusSet[code]; ok {
+			return code
 		}
-		ue.Username = err.Error()
-		ue.statusCode = err.StatusCode()
 	}
 
-	err = ValidEmail(email)
-	if err != nil {
-		ue.Email = err.Error()
-		ue.statusCode = http.StatusUnprocessableEntity
-	}
-
-	err = ValidPassword(password)
-	if err != nil {
-		ue.Password = err.Error()
-		ue.statusCode = http.StatusUnprocessableEntity
-	}
-	if ue.statusCode != http.StatusOK {
-		return ue
-	}
-	return nil
+	slog.Error("Get priority Status Code: This shouldn't be possible.")
+	return statusCode
 }
 
-type ValidationError interface {
-	error
-	StatusCode() int
-}
-
-type validationError struct {
-	message    string
-	statusCode int
-}
-
-func newValidationError(statusCode int, message string) validationError {
-	return validationError{message, statusCode}
-}
-
-func newValidationErrorf(statusCode int, format string, args ...any) validationError {
-	message := fmt.Sprintf(format, args...)
-	return validationError{
-		message:    message,
-		statusCode: statusCode,
-	}
-}
-
-func (v validationError) Error() string {
-	return v.message
-}
-
-func (v validationError) StatusCode() int {
-	return v.statusCode
-}
-
-func ValidUsername(u string, us UserStore) ValidationError {
+func ValidUsername(u string, us UserStore) StatusCoder {
 	const (
 		maxLen = 15
 		minLen = 3
@@ -203,13 +210,13 @@ func ValidUsername(u string, us UserStore) ValidationError {
 
 	n := utf8.RuneCountInString(u)
 	if n == 0 {
-		return newValidationError(http.StatusUnprocessableEntity, "* Username is required.")
+		return NewStatusError(http.StatusUnprocessableEntity, "* Username is required.")
 	}
 	if n > maxLen {
-		return newValidationErrorf(http.StatusUnprocessableEntity, "* Username must have at most %d characters.", maxLen)
+		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Username must have at most %d characters.", maxLen)
 	}
 	if n < minLen {
-		return newValidationErrorf(http.StatusUnprocessableEntity, "* Username must have at least %d characters.", minLen)
+		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Username must have at least %d characters.", minLen)
 	}
 
 	for _, r := range u {
@@ -226,33 +233,34 @@ func ValidUsername(u string, us UserStore) ValidationError {
 		if r == '_' || r == '-' {
 			continue
 		}
-		return newValidationError(http.StatusUnprocessableEntity, "* English letters, digits, _ and - only.")
+		return NewStatusError(http.StatusUnprocessableEntity, "* English letters, digits, _ and - only.")
 	}
 
 	alreadyExists, err := us.UserNameExists(u)
 	if err != nil {
-		return newValidationError(http.StatusInternalServerError, err.Error())
+		slog.Error(err.Error())
+		return NewStatusError(http.StatusInternalServerError, "")
 	}
 	if alreadyExists {
-		return newValidationError(http.StatusConflict, "Username already taken.")
+		return NewStatusError(http.StatusConflict, "Username already taken.")
 	}
 
 	return nil
 }
 
-func ValidEmail(e string) ValidationError {
+func ValidEmail(e string) StatusCoder {
 	if len(e) == 0 {
-		return newValidationError(http.StatusUnprocessableEntity, "* Email address is required.")
+		return NewStatusError(http.StatusUnprocessableEntity, "* Email address is required.")
 	}
 
-	if _, err := mail.ParseAddress(string(e)); err != nil {
-		return newValidationError(http.StatusUnprocessableEntity, "* This is not a valid email address.")
+	if _, err := mail.ParseAddress(e); err != nil {
+		return NewStatusError(http.StatusUnprocessableEntity, "* This is not a valid email address.")
 	}
 
 	return nil
 }
 
-func ValidPassword(p string) ValidationError {
+func ValidPassword(p string) StatusCoder {
 	const (
 		MaxLen = 128
 		MinLen = 8
@@ -260,14 +268,41 @@ func ValidPassword(p string) ValidationError {
 
 	n := utf8.RuneCountInString(p)
 	if n == 0 {
-		return newValidationError(http.StatusUnprocessableEntity, "* Password is required.")
+		return NewStatusError(http.StatusUnprocessableEntity, "* Password is required.")
 	}
 	if n > MaxLen {
-		return newValidationErrorf(http.StatusUnprocessableEntity, "* Password must contain at most %d characters.", MaxLen)
+		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Password must contain at most %d characters.", MaxLen)
 	}
 	if n < MinLen {
-		return newValidationErrorf(http.StatusUnprocessableEntity, "* Password must contain atleast %d characters.", MinLen)
+		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Password must contain atleast %d characters.", MinLen)
 	}
 
 	return nil
+}
+
+type StatusCoder interface {
+	error
+	StatusCode() int
+}
+
+type StatusError struct {
+	code    int
+	message string
+}
+
+func NewStatusError(code int, message string) StatusError {
+	return StatusError{code, message}
+}
+
+func NewStatusErrorf(code int, format string, a ...any) StatusError {
+	message := fmt.Sprintf(format, a...)
+	return StatusError{code, message}
+}
+
+func (e StatusError) Error() string {
+	return e.message
+}
+
+func (e StatusError) StatusCode() int {
+	return e.code
 }
