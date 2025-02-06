@@ -79,11 +79,11 @@ func newVerificationCode(userID uint, us UserStore) (uint, error) {
 func NewUser(username, email, password string, us UserStore, es email.EmailSender) StatusCoder {
 	const emailSubject = "FlickMeter registration"
 
-	if multiError := validUser(username, email, password, us); multiError != nil {
+	user := &User{Username: username, Email: email, Password: password}
+
+	if multiError := user.isValid(us); multiError != nil {
 		return multiError
 	}
-
-	user := &User{Username: username, Email: email, Password: password}
 
 	if err := user.hashPassword(); err != nil {
 		slog.Error(err.Error())
@@ -137,7 +137,7 @@ type StatusErrors struct {
 }
 
 func (e StatusErrors) Error() string {
-	return fmt.Sprintln(e.errorMap)
+	return fmt.Sprint(e.errorMap)
 }
 
 func (e StatusErrors) StatusCode() int {
@@ -152,21 +152,21 @@ func NewStatusErrors(code int, m map[string]string) *StatusErrors {
 	return &StatusErrors{code, m}
 }
 
-func validUser(username, email, password string, us UserStore) *StatusErrors {
+func (user *User) isValid(us UserStore) *StatusErrors {
 	errorMap := make(map[string]string, 3)
 	codes := make([]int, 0, len(errorMap))
 
-	if err := ValidUsername(username, us); err != nil {
+	if err := ValidUsername(user.Username, us); err != nil {
 		errorMap["username"] = err.Error()
 		codes = append(codes, err.StatusCode())
 	}
 
-	if err := ValidEmail(email); err != nil {
+	if err := ValidEmail(user.Email); err != nil {
 		errorMap["email"] = err.Error()
 		codes = append(codes, err.StatusCode())
 	}
 
-	if err := ValidPassword(password); err != nil {
+	if err := ValidPassword(user.Password); err != nil {
 		errorMap["password"] = err.Error()
 		codes = append(codes, err.StatusCode())
 	}
