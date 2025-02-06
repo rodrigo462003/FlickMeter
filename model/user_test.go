@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 )
@@ -63,6 +64,73 @@ func TestValidEmail(t *testing.T) {
 				}
 			} else if tt.wantCode != 0 {
 				t.Errorf("%s: ValidEmail() = nil, want code %d and message %q", tt.name, tt.wantCode, tt.wantMsg)
+			}
+		})
+	}
+}
+
+type MockUserStore struct {
+	UserNameExistsFn func(string) (bool, error)
+}
+
+func (m *MockUserStore) UserNameExists(u string) (bool, error) {
+	return m.UserNameExistsFn(u)
+}
+
+func (m *MockUserStore) Create(u *User) StatusCoder {
+	return nil
+}
+
+func (m *MockUserStore) CreateVerificationCode(v *VerificationCode) error {
+	return nil
+}
+
+func (m *MockUserStore) GetUserByID(id uint) (*User, error) {
+	return nil, nil
+}
+
+func TestValidUsername(t *testing.T) {
+	tests := []struct {
+		name            string
+		username        string
+		mockUserNameFn  func(string) (bool, error)
+		expectedStatus  int
+		expectedMessage string
+	}{
+		{"required username", "", func(u string) (bool, error) { return false, nil }, http.StatusUnprocessableEntity, "* Username is required."},
+		{"valid username underscore", "ValidUser_1", func(u string) (bool, error) { return false, nil }, http.StatusOK, ""},
+		{"valid username dash", "ValidUser-1", func(u string) (bool, error) { return false, nil }, http.StatusOK, ""},
+		{"len3", "123", func(u string) (bool, error) { return false, nil }, http.StatusOK, ""},
+		{"len2", "12", func(u string) (bool, error) { return false, nil }, http.StatusUnprocessableEntity, "* Username must have at least 3 characters."},
+		{"len15", "123456789ABCDEF", func(u string) (bool, error) { return false, nil }, http.StatusOK, ""},
+		{"len16", "123456789ABCDEFG", func(u string) (bool, error) { return false, nil }, http.StatusUnprocessableEntity, "* Username must have at most 15 characters."},
+		{"username with @", "Invalid@User", func(u string) (bool, error) { return false, nil }, http.StatusUnprocessableEntity, "* English letters, digits, _ and - only."},
+		{"username with space", "Invalid User", func(u string) (bool, error) { return false, nil }, http.StatusUnprocessableEntity, "* English letters, digits, _ and - only."},
+		{"username with *", "Invalid*User", func(u string) (bool, error) { return false, nil }, http.StatusUnprocessableEntity, "* English letters, digits, _ and - only."},
+		{"username already taken", "TakenUser", func(u string) (bool, error) { return true, nil }, http.StatusConflict, "* Username already taken."},
+		{"db error", "TakenUser", func(u string) (bool, error) { return false, errors.New("") }, http.StatusInternalServerError, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			us := &MockUserStore{UserNameExistsFn: tt.mockUserNameFn}
+
+			result := ValidUsername(tt.username, us)
+
+			if result != nil {
+				if result.StatusCode() != tt.expectedStatus {
+					t.Errorf("Expected status code %d, got %d", tt.expectedStatus, result.StatusCode())
+				}
+				if result.Error() != tt.expectedMessage {
+					t.Errorf("Expected message %q, got %q", tt.expectedMessage, result.Error())
+				}
+			} else {
+				if tt.expectedStatus != http.StatusOK {
+					t.Errorf("Expected status code %d, got %d", http.StatusOK, tt.expectedStatus)
+				}
+				if tt.expectedMessage != "" {
+					t.Errorf("Expected empty message, got %q", tt.expectedMessage)
+				}
 			}
 		})
 	}
