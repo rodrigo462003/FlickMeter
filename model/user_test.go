@@ -135,3 +135,30 @@ func TestValidUsername(t *testing.T) {
 		})
 	}
 }
+
+func TestGetPriorityStatusCode(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []int
+		expected int
+	}{
+		{"No matching codes", []int{http.StatusOK, http.StatusCreated}, http.StatusInternalServerError},
+		{"One code", []int{http.StatusConflict}, http.StatusConflict},
+		{"conflict", []int{http.StatusOK, http.StatusConflict}, http.StatusConflict},
+		{"internal over unprocess", []int{http.StatusUnprocessableEntity, http.StatusInternalServerError}, http.StatusInternalServerError},
+		{"All codes included", []int{http.StatusInternalServerError, http.StatusConflict, http.StatusUnprocessableEntity}, http.StatusInternalServerError},
+		{"Conflict over unprocess", []int{http.StatusConflict, http.StatusUnprocessableEntity}, http.StatusConflict},
+		{"internal over conflict", []int{http.StatusInternalServerError, http.StatusConflict}, http.StatusInternalServerError},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got := getPriorityStatusCode(tt.input)
+			if got != tt.expected {
+				t.Errorf("getPriorityStatusCode() = %v, want %v", got, tt.expected)
+			}
+
+		})
+	}
+}
