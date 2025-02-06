@@ -13,12 +13,16 @@ func TestValidPassword(t *testing.T) {
 		wantMsg  string
 	}{
 		{"empty", "", http.StatusUnprocessableEntity, "* Password is required."},
-		{"len7", "1234567", http.StatusUnprocessableEntity, "* Password must contain atleast 8 characters."},
+		{"len7", "1234567", http.StatusUnprocessableEntity, "* Must contain at least 8 characters."},
 		{"len8", "12345678", 0, ""},
 		{"len9", "123456789", 0, ""},
 		{"len127", "thispasswordiswaytoolongandexceeds128character23432432423423333333333333333333333333333333333333333334322434242343243242342s2..", 0, ""},
 		{"len128", "thispasswordiswaytoolongandexceeds128character23432432423423333333333333333333333333333333333333333334322434242343243242342s2...", 0, ""},
-		{"len129", "thispasswordiswaytoolongandexceeds128character23432432423423333333333333333333333333333333333333333334322434242343243242342s2....", http.StatusUnprocessableEntity, "* Password must contain at most 128 characters."},
+		{"len129", "thispasswordiswaytoolongandexceeds128character23432432423423333333333333333333333333333333333333333334322434242343243242342s2....", http.StatusUnprocessableEntity, "* Must contain at most 128 characters."},
+		{"invalid_utf8", string([]byte{0xff, 0xfe, 0xfd}), http.StatusUnprocessableEntity, "* Invalid character(s) detected, try again."},
+		{"multi_codepoint_len7", "🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿", http.StatusUnprocessableEntity, "* Must contain at least 8 characters."},
+		{"multi_codepoint_len8", "🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿", 0, ""},
+		{"multi_codepoint_len9", "🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿", 0, ""},
 	}
 
 	for _, tt := range tests {
@@ -27,10 +31,10 @@ func TestValidPassword(t *testing.T) {
 
 			if got != nil {
 				if got.StatusCode() != tt.wantCode || got.Error() != tt.wantMsg {
-					t.Errorf("ValidPassword() = %v, want code %d and message %q", got, tt.wantCode, tt.wantMsg)
+					t.Errorf("ValidPassword(%q) = %v, want code %d and message %q", tt.password, got, tt.wantCode, tt.wantMsg)
 				}
 			} else if tt.wantCode != 0 {
-				t.Errorf("ValidPassword() = nil, want code %d and message %q", tt.wantCode, tt.wantMsg)
+				t.Errorf("ValidPassword(%q) = nil, want code %d and message %q", tt.password, tt.wantCode, tt.wantMsg)
 			}
 		})
 	}
