@@ -11,6 +11,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/rivo/uniseg"
 	"github.com/rodrigo462003/FlickMeter/email"
 	"github.com/rodrigo462003/FlickMeter/hashing"
 	"gorm.io/gorm"
@@ -208,18 +209,12 @@ func ValidUsername(u string, us UserStore) StatusCoder {
 		minLen = 3
 	)
 
-	n := utf8.RuneCountInString(u)
-	if n == 0 {
-		return NewStatusError(http.StatusUnprocessableEntity, "* Username is required.")
-	}
-	if n > maxLen {
-		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Username must have at most %d characters.", maxLen)
-	}
-	if n < minLen {
-		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Username must have at least %d characters.", minLen)
-	}
-
+	n := 0
 	for _, r := range u {
+		n++
+		if n > maxLen {
+			break
+		}
 		isLetter := 'a' <= r && r <= 'z' || 'A' <= r && r <= 'Z'
 		if isLetter {
 			continue
@@ -236,13 +231,23 @@ func ValidUsername(u string, us UserStore) StatusCoder {
 		return NewStatusError(http.StatusUnprocessableEntity, "* English letters, digits, _ and - only.")
 	}
 
+	if n == 0 {
+		return NewStatusError(http.StatusUnprocessableEntity, "* Username is required.")
+	}
+	if n > maxLen {
+		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Username must have at most %d characters.", maxLen)
+	}
+	if n < minLen {
+		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Username must have at least %d characters.", minLen)
+	}
+
 	alreadyExists, err := us.UserNameExists(u)
 	if err != nil {
 		slog.Error(err.Error())
 		return NewStatusError(http.StatusInternalServerError, "")
 	}
 	if alreadyExists {
-		return NewStatusError(http.StatusConflict, "Username already taken.")
+		return NewStatusError(http.StatusConflict, "* Username already taken.")
 	}
 
 	return nil
@@ -266,15 +271,19 @@ func ValidPassword(p string) StatusCoder {
 		MinLen = 8
 	)
 
-	n := utf8.RuneCountInString(p)
+	if !utf8.ValidString(p) {
+		return NewStatusError(http.StatusUnprocessableEntity, "* Invalid character(s) detected, try again.")
+	}
+
+	n := uniseg.GraphemeClusterCount(p)
 	if n == 0 {
 		return NewStatusError(http.StatusUnprocessableEntity, "* Password is required.")
 	}
 	if n > MaxLen {
-		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Password must contain at most %d characters.", MaxLen)
+		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Must contain at most %d characters.", MaxLen)
 	}
 	if n < MinLen {
-		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Password must contain atleast %d characters.", MinLen)
+		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Must contain at least %d characters.", MinLen)
 	}
 
 	return nil
