@@ -34,6 +34,11 @@ func (us *UserStore) GetUserByID(id uint) (user *model.User, err error) {
 	return user, err
 }
 
+func (us *UserStore) GetUserByEmail(email string) (user *model.User, err error) {
+	err = us.db.Preload(clause.Associations).Where("email = ?", email).First(&user).First(&user).Error
+	return user, err
+}
+
 // Creates and stores user, returns error with StatusError for internals and email conflict.
 // Return StatusErrors with conflict if username taken in map.
 func (us *UserStore) Create(user *model.User) model.StatusCoder {
@@ -70,4 +75,8 @@ func (us *UserStore) Create(user *model.User) model.StatusCoder {
 
 func (us *UserStore) CreateVerificationCode(vc *model.VerificationCode) error {
 	return us.db.Create(vc).Error
+}
+
+func (us *UserStore) DeleteCode(vc *model.VerificationCode) error {
+	return us.db.Delete(vc).Error
 }

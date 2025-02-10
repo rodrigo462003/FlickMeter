@@ -25,8 +25,16 @@ func (m *MockUserStore) CreateVerificationCode(v *VerificationCode) error {
 	return m.CreateVerificationCodeFunc(v)
 }
 
+func (m *MockUserStore) GetUserByEmail(email string) (user *User, err error) {
+	return nil, nil
+}
+
 func (m *MockUserStore) GetUserByID(id uint) (*User, error) {
 	return m.GetUserByIDFunc(id)
+}
+
+func (m *MockUserStore) DeleteCode(v *VerificationCode) error {
+	return nil
 }
 
 type MockEmailSender struct{}
@@ -130,7 +138,7 @@ func TestIsValid(t *testing.T) {
 		name        string
 		user        *User
 		userStore   *MockUserStore
-		expectedErr *StatusErrors
+		expectedErr StatusCoder
 	}{
 		{"Valid user", &User{Username: "validuser", Email: "valid@example.com", Password: "ValidPass123"}, &MockUserStore{UserNameExistsFunc: func(username string) (bool, error) { return false, nil }}, nil},
 		{"Invalid username", &User{Username: "invalid_user@!", Email: "valid@example.com", Password: "ValidPass123"}, &MockUserStore{UserNameExistsFunc: func(username string) (bool, error) { return false, nil }}, NewStatusErrors(http.StatusUnprocessableEntity, map[string]string{"username": "* English letters, digits, _ and - only."})},
@@ -143,21 +151,34 @@ func TestIsValid(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.user.isValid(tt.userStore)
+			err := tt.user.isValid(tt.userStore)
 
 			if tt.expectedErr != nil {
-				if got == nil || got.StatusCode() != tt.expectedErr.StatusCode() {
+				var got StatusErrors
+				ok := errors.As(err, &got)
+				if !ok {
+					t.Error("isValid() errors.As(err, StatusErrors) failed")
+					return
+				}
+				var expected StatusErrors
+				ok = errors.As(tt.expectedErr, &expected)
+				if !ok {
+					t.Error("isValid() errors.As(tt.expectedErr, StatusErrors) failed")
+					return
+				}
+
+				if err == nil || got.StatusCode() != tt.expectedErr.StatusCode() {
 					t.Errorf("isValid() = %v, want %v", got, tt.expectedErr)
 				}
-				if got != nil && got.errorMap != nil {
-					for field, expectedMessage := range tt.expectedErr.errorMap {
+				if err != nil && got.errorMap != nil {
+					for field, expectedMessage := range expected.Map() {
 						if gotMessage, exists := got.errorMap[field]; !exists || gotMessage != expectedMessage {
 							t.Errorf("isValid() error for %s = %v, want %v", field, gotMessage, expectedMessage)
 						}
 					}
 				}
-			} else if got != nil {
-				t.Errorf("isValid() = %v, want nil", got)
+			} else if err != nil {
+				t.Errorf("isValid() = %v, want nil", err)
 			}
 		})
 	}

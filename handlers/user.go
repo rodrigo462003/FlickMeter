@@ -62,13 +62,20 @@ func (uh *UserHandler) PostVerify(c echo.Context) error {
 	if err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
-	code := c.Request().Form["code"]
-	if len(code) != 6 {
+	digits := c.Request().Form["code"]
+	if len(digits) != 6 {
 		return c.NoContent(http.StatusBadRequest)
 	}
-	codeString := strings.Join(code, "")
-	if len(codeString) != 6 {
-		return c.NoContent(http.StatusBadRequest)
+	code := strings.Join(digits, "")
+	if len(code) != 6 {
+		return c.NoContent(http.StatusUnprocessableEntity)
+	}
+
+	email := c.FormValue("email")
+
+	statError := model.VerifyCode(code, email, uh.userStore)
+	if statError != nil {
+		return c.String(statError.StatusCode(), statError.Error())
 	}
 
 	return c.NoContent(http.StatusOK)

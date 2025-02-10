@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"net/http"
 	"net/mail"
+	"strconv"
 	"time"
 	"unicode/utf8"
 
@@ -29,17 +30,17 @@ type User struct {
 type VerificationCode struct {
 	gorm.Model
 	UserID    uint      `gorm:"not null;index"`
-	Code      uint      `gorm:"not null"`
+	Code      string    `gorm:"not null"`
 	ExpiresAt time.Time `gorm:"not null"`
 }
 
 type UserStore interface {
 	UserNameExists(string) (bool, error)
-	// Creates and stores user, returns error with StatusError for internals and email conflict.
-	// Return StatusErrors with conflict if username taken in map.
 	Create(*User) StatusCoder
 	CreateVerificationCode(*VerificationCode) error
 	GetUserByID(uint) (*User, error)
+	GetUserByEmail(string) (*User, error)
+	DeleteCode(*VerificationCode) error
 }
 
 func (u *User) hashPassword() error {
@@ -52,25 +53,39 @@ func (u *User) hashPassword() error {
 	return nil
 }
 
-func newVerificationCode(userID uint, us UserStore) (uint, error) {
-	var code uint = 0
+func VerifyCode(code string, email string, us UserStore) StatusCoder {
+	user, err := us.GetUserByEmail(email)
+	if err != nil {
+		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
+	}
+
+	for _, dbCode := range user.VerificationCodes {
+		if dbCode.ExpiresAt.After(time.Now()) && code == dbCode.Code {
+			return nil
+		}
+	}
+	return NewStatusError(http.StatusConflict, "* This code is incorrect.")
+}
+
+func newVerificationCode(userID uint, us UserStore) (string, error) {
+	code := ""
 	for i := 0; i < 6; i++ {
 		num, err := rand.Int(rand.Reader, big.NewInt(9))
 		if err != nil {
-			return 0, err
+			return "", err
 		}
-		code = code*10 + uint(num.Uint64()) + 1
+		code += strconv.Itoa(int(num.Uint64()))
 	}
 
 	vc := &VerificationCode{
 		UserID:    userID,
-		Code:      uint(code),
+		Code:      code,
 		ExpiresAt: time.Now().Add(15 * time.Minute),
 	}
 
 	err := us.CreateVerificationCode(vc)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	return code, nil
@@ -119,7 +134,7 @@ func NewUser(username, email, password string, us UserStore, es email.EmailSende
 		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
 	}
 
-	emailBody := fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%d", code)
+	emailBody := fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%s", code)
 
 	es.SendMail(user.Email, emailSubject, emailBody)
 
@@ -148,11 +163,11 @@ func (e StatusErrors) Map() map[string]string {
 	return e.errorMap
 }
 
-func NewStatusErrors(code int, m map[string]string) *StatusErrors {
-	return &StatusErrors{code, m}
+func NewStatusErrors(code int, m map[string]string) StatusErrors {
+	return StatusErrors{code, m}
 }
 
-func (user *User) isValid(us UserStore) *StatusErrors {
+func (user *User) isValid(us UserStore) StatusCoder {
 	errorMap := make(map[string]string, 3)
 	codes := make([]int, 0, len(errorMap))
 
@@ -199,7 +214,6 @@ func getPriorityStatusCode(codes []int) int {
 		}
 	}
 
-	slog.Error("Get priority Status Code: This shouldn't be possible.")
 	return statusCode
 }
 
@@ -243,7 +257,6 @@ func ValidUsername(u string, us UserStore) StatusCoder {
 
 	alreadyExists, err := us.UserNameExists(u)
 	if err != nil {
-		slog.Error(err.Error())
 		return NewStatusError(http.StatusInternalServerError, "")
 	}
 	if alreadyExists {
