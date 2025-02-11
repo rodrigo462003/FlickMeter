@@ -24,12 +24,12 @@ type User struct {
 	Email             string             `gorm:"type:varchar(254);unique;not null"`
 	Password          string             `gorm:"type:varchar(255);not null"`
 	Verified          bool               `gorm:"default:false;not null"`
-	VerificationCodes []VerificationCode `gorm:"foreignKey:UserID"`
+	VerificationCodes []VerificationCode `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 type VerificationCode struct {
 	gorm.Model
-	UserID    uint      `gorm:"not null;index"`
+	UserID    uint      `gorm:"not null;index;"`
 	Code      string    `gorm:"not null"`
 	ExpiresAt time.Time `gorm:"not null"`
 }
@@ -41,6 +41,7 @@ type UserStore interface {
 	GetUserByID(uint) (*User, error)
 	GetUserByEmail(string) (*User, error)
 	DeleteCode(*VerificationCode) error
+	VerifyUser(*User) error
 }
 
 func (u *User) hashPassword() error {
@@ -53,18 +54,28 @@ func (u *User) hashPassword() error {
 	return nil
 }
 
-func VerifyCode(code string, email string, us UserStore) StatusCoder {
+func VerifyUser(code string, email string, us UserStore) StatusCoder {
 	user, err := us.GetUserByEmail(email)
 	if err != nil {
+		slog.Error(err.Error())
 		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
+	}
+
+	if user.Verified {
+		return nil
 	}
 
 	for _, dbCode := range user.VerificationCodes {
 		if dbCode.ExpiresAt.After(time.Now()) && code == dbCode.Code {
+			if err := us.VerifyUser(user); err != nil {
+				slog.Error(err.Error())
+				return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
+			}
 			return nil
 		}
 	}
-	return NewStatusError(http.StatusConflict, "* This code is incorrect.")
+
+	return NewStatusError(http.StatusConflict, "* Incorrect code.")
 }
 
 func newVerificationCode(userID uint, us UserStore) (string, error) {

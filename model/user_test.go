@@ -37,6 +37,10 @@ func (m *MockUserStore) DeleteCode(v *VerificationCode) error {
 	return nil
 }
 
+func (m *MockUserStore) VerifyUser(u *User) error {
+	return nil
+}
+
 type MockEmailSender struct{}
 
 func (m *MockEmailSender) SendMail(to, subject, body string) {
@@ -78,6 +82,21 @@ func TestNewUser(t *testing.T) {
 			},
 			expectedStatus:  http.StatusConflict,
 			expectedMessage: "map[username:* Username already taken.]",
+		},
+		{
+			name:     "username already exists",
+			username: "hello",
+			email:    "existing@example.com",
+			password: "password123",
+			mockStore: &MockUserStore{
+				CreateVerificationCodeFunc: func(vc *VerificationCode) error { return nil },
+				UserNameExistsFunc:         func(username string) (bool, error) { return false, nil },
+				CreateFunc: func(u *User) StatusCoder {
+					return NewStatusErrors(http.StatusConflict, map[string]string{"email": "* Email already taken."})
+				},
+			},
+			expectedStatus:  http.StatusConflict,
+			expectedMessage: "map[email:* Email already taken.]",
 		},
 		{
 			name:     "validation error (username too short)",
