@@ -35,16 +35,15 @@ func (us *UserStore) GetUserByID(id uint) (user *model.User, err error) {
 }
 
 func (us *UserStore) GetUserByEmail(email string) (user *model.User, err error) {
-	err = us.db.Preload(clause.Associations).Where("email = ?", email).First(&user).First(&user).Error
+	err = us.db.Preload(clause.Associations).Where("email = ?", email).First(&user).Error
 	return user, err
 }
 
 // Creates and stores user, returns error with StatusError for internals and email conflict.
 // Return StatusErrors with conflict if username taken in map.
 func (us *UserStore) Create(user *model.User) model.StatusCoder {
-	tempUser := model.User{Username: user.Username, Email: user.Email}
-
-	result := us.db.FirstOrCreate(&tempUser)
+	tempUser := *user
+	result := us.db.Where("email = ? OR username = ? ", user.Email, user.Username).FirstOrCreate(&tempUser)
 	if result.Error != nil {
 		slog.Error(result.Error.Error())
 		return model.NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
@@ -71,6 +70,16 @@ func (us *UserStore) Create(user *model.User) model.StatusCoder {
 	}
 	errorMap := map[string]string{"username": "Username already taken."}
 	return model.NewStatusErrors(http.StatusConflict, errorMap)
+}
+
+func (us *UserStore) VerifyUser(u *model.User) error {
+	u.Verified = true
+	err := us.db.Save(u).Error
+	if err != nil {
+		u.Verified = false
+	}
+
+	return err
 }
 
 func (us *UserStore) CreateVerificationCode(vc *model.VerificationCode) error {

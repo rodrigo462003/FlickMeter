@@ -73,7 +73,7 @@ func (uh *UserHandler) PostVerify(c echo.Context) error {
 
 	email := c.FormValue("email")
 
-	statError := model.VerifyCode(code, email, uh.userStore)
+	statError := model.VerifyUser(code, email, uh.userStore)
 	if statError != nil {
 		return c.String(statError.StatusCode(), statError.Error())
 	}
