@@ -2,7 +2,6 @@ package model
 
 import (
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"log/slog"
 	"math/big"
@@ -35,13 +34,13 @@ type VerificationCode struct {
 }
 
 type UserStore interface {
-	UserNameExists(string) (bool, error)
-	Create(*User) StatusCoder
-	CreateVerificationCode(*VerificationCode) error
-	GetUserByID(uint) (*User, error)
-	GetUserByEmail(string) (*User, error)
-	DeleteCode(*VerificationCode) error
-	VerifyUser(*User) error
+	UsernameExists(string) (bool, error)
+	FirstOrCreate(*User) (bool, error)
+	CreateVCode(*VerificationCode) error
+	GetByID(uint) (*User, error)
+	GetByEmail(string) (*User, error)
+	DeleteVCode(*VerificationCode) error
+	Save(*User) error
 }
 
 func (u *User) hashPassword() error {
@@ -55,10 +54,10 @@ func (u *User) hashPassword() error {
 }
 
 func VerifyUser(code string, email string, us UserStore) StatusCoder {
-	user, err := us.GetUserByEmail(email)
+	user, err := us.GetByEmail(email)
 	if err != nil {
 		slog.Error(err.Error())
-		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
+		return InternalServerError()
 	}
 
 	if user.Verified {
@@ -67,9 +66,11 @@ func VerifyUser(code string, email string, us UserStore) StatusCoder {
 
 	for _, dbCode := range user.VerificationCodes {
 		if dbCode.ExpiresAt.After(time.Now()) && code == dbCode.Code {
-			if err := us.VerifyUser(user); err != nil {
+			user.Verified = true
+			if err := us.Save(user); err != nil {
+				user.Verified = false
 				slog.Error(err.Error())
-				return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
+				return InternalServerError()
 			}
 			return nil
 		}
@@ -78,25 +79,41 @@ func VerifyUser(code string, email string, us UserStore) StatusCoder {
 	return NewStatusError(http.StatusConflict, "* Incorrect code.")
 }
 
-func newVerificationCode(userID uint, us UserStore) (string, error) {
+func newVerificationCode(user *User, us UserStore) (string, StatusCoder) {
+	if len(user.VerificationCodes) == 5 {
+		anyRemoved := false
+		for _, vc := range user.VerificationCodes {
+			if vc.ExpiresAt.Before(time.Now()) {
+				if err := us.DeleteVCode(&vc); err == nil {
+					anyRemoved = true
+				}
+			}
+		}
+		if !anyRemoved {
+			return "", NewStatusError(http.StatusConflict, "Can't request more codes. Try again later.")
+		}
+	}
+
 	code := ""
 	for i := 0; i < 6; i++ {
 		num, err := rand.Int(rand.Reader, big.NewInt(9))
 		if err != nil {
-			return "", err
+			slog.Error(err.Error())
+			return "", InternalServerError()
 		}
-		code += strconv.Itoa(int(num.Uint64()))
+		code += strconv.FormatUint(num.Uint64(), 10)
 	}
 
 	vc := &VerificationCode{
-		UserID:    userID,
+		UserID:    user.ID,
 		Code:      code,
 		ExpiresAt: time.Now().Add(15 * time.Minute),
 	}
 
-	err := us.CreateVerificationCode(vc)
+	err := us.CreateVCode(vc)
 	if err != nil {
-		return "", err
+		slog.Error(err.Error())
+		return "", InternalServerError()
 	}
 
 	return code, nil
@@ -107,46 +124,55 @@ func NewUser(username, email, password string, us UserStore, es email.EmailSende
 
 	user := &User{Username: username, Email: email, Password: password}
 
-	if multiError := user.isValid(us); multiError != nil {
-		return multiError
+	if multiErr := user.isValid(us); multiErr != nil {
+		return multiErr
 	}
 
 	if err := user.hashPassword(); err != nil {
 		slog.Error(err.Error())
-		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
+		return InternalServerError()
 	}
 
-	err := us.Create(user)
+	tmpU := *user
+	created, err := us.FirstOrCreate(user)
 	if err != nil {
-		var multiError StatusErrors
-		if errors.As(err, &multiError) {
-			return multiError
-		}
-		var sErr StatusError
-		if errors.As(err, &sErr) {
-			if sErr.code == http.StatusInternalServerError {
-				return sErr
+		slog.Error(err.Error())
+		return InternalServerError()
+	}
+	if !created {
+		if user.Verified {
+			if user.Username == tmpU.Username && user.Email != tmpU.Email {
+				return NewStatusErrors(http.StatusConflict, map[string]string{"username": "Username already taken."})
 			}
-			emailBody := "You already have an account, try logging in."
-			es.SendMail(user.Email, emailSubject, emailBody)
-			return nil
+			if user.Email == tmpU.Email {
+				es.SendMail(user.Email, emailSubject, "You already have a FlickMeter account, try signing in.")
+				return nil
+			}
+			slog.Error(err.Error())
+			return InternalServerError()
 		}
-		slog.Error(fmt.Errorf("This is not suppposed to happen: %w", err).Error())
-		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
+
+		if user.Username == tmpU.Username && user.Email != tmpU.Email {
+			return NewStatusErrors(http.StatusConflict, map[string]string{"username": "Username already taken."})
+		}
+		if user.Email == tmpU.Email {
+			user.Username, user.Password = user.Username, user.Password
+			if err := us.Save(user); err != nil {
+				slog.Error(err.Error())
+				return InternalServerError()
+			}
+		} else {
+			slog.Error(err.Error())
+			return InternalServerError()
+		}
 	}
 
-	if len(user.VerificationCodes) >= 5 {
-		return NewStatusError(http.StatusConflict, "Can't request more codes. Try again later.")
-	}
-
-	code, codeErr := newVerificationCode(user.ID, us)
-	if codeErr != nil {
-		slog.Error(codeErr.Error())
-		return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
+	code, codeErr := newVerificationCode(user, us)
+	if err != nil {
+		return codeErr
 	}
 
 	emailBody := fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%s", code)
-
 	es.SendMail(user.Email, emailSubject, emailBody)
 
 	return nil
@@ -266,7 +292,7 @@ func ValidUsername(u string, us UserStore) StatusCoder {
 		return NewStatusErrorf(http.StatusUnprocessableEntity, "* Username must have at least %d characters.", minLen)
 	}
 
-	alreadyExists, err := us.UserNameExists(u)
+	alreadyExists, err := us.UsernameExists(u)
 	if err != nil {
 		return NewStatusError(http.StatusInternalServerError, "")
 	}
@@ -325,6 +351,10 @@ type StatusError struct {
 
 func NewStatusError(code int, message string) StatusError {
 	return StatusError{code, message}
+}
+
+func InternalServerError() StatusError {
+	return NewStatusError(http.StatusInternalServerError, "Something unexpected has happened, please try again.")
 }
 
 func NewStatusErrorf(code int, format string, a ...any) StatusError {
