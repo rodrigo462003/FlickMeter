@@ -21,7 +21,7 @@ func (m *MockUserStore) Create(u *User) StatusCoder {
 	return m.CreateFunc(u)
 }
 
-func (m *MockUserStore) CreateVerificationCode(v *VerificationCode) error {
+func (m *MockUserStore) CreateVCode(v *VerificationCode) error {
 	return m.CreateVerificationCodeFunc(v)
 }
 
@@ -33,11 +33,11 @@ func (m *MockUserStore) GetUserByID(id uint) (*User, error) {
 	return m.GetUserByIDFunc(id)
 }
 
-func (m *MockUserStore) DeleteCode(v *VerificationCode) error {
+func (m *MockUserStore) DeleteVCode(v *VerificationCode) error {
 	return nil
 }
 
-func (m *MockUserStore) VerifyUser(u *User) error {
+func (m *MockUserStore) SaveUser(u *User) error {
 	return nil
 }
 
