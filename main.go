@@ -9,6 +9,7 @@ import (
 	"github.com/rodrigo462003/FlickMeter/db"
 	"github.com/rodrigo462003/FlickMeter/email"
 	"github.com/rodrigo462003/FlickMeter/handlers"
+	"github.com/rodrigo462003/FlickMeter/service"
 	"github.com/rodrigo462003/FlickMeter/store"
 	"golang.org/x/time/rate"
 )
@@ -17,16 +18,15 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		panic(err)
 	}
-	connSTR := os.Getenv("CONN_STR")
 
-	gmailPw := os.Getenv("GMAIL_APP_PW")
-	from := os.Getenv("EMAIL")
-	host := os.Getenv("EMAIL_HOST")
-	port := os.Getenv("EMAIL_PORT")
+	connSTR := os.Getenv("CONN_STR")
+	gmailPw, from := os.Getenv("GMAIL_APP_PW"), os.Getenv("EMAIL")
+	host, port := os.Getenv("EMAIL_HOST"), os.Getenv("EMAIL_PORT")
+
 	es := email.NewMailSender(from, gmailPw, host, port)
-	d := db.New(connSTR)
-	us := store.NewUserStore(d)
-	h := handlers.NewHandler(us, es)
+	db := db.New(connSTR)
+	us := store.NewUserStore(db)
+	uh := handlers.NewUserHandler(service.NewUserService(us, es))
 
 	e := echo.New()
 	e.Debug = true
@@ -35,14 +35,14 @@ func main() {
 	e.Static("/public", "./public")
 	e.GET("/", handlers.GetHome)
 
-	e.GET("/signIn", h.UserHandler.GetSignIn)
-	e.POST("/signIn", h.UserHandler.PostSignIn)
-	e.GET("/register", h.UserHandler.GetRegister)
-	e.POST("/register", h.UserHandler.PostRegister)
-	e.POST("/register/username", h.UserHandler.PostUsername)
-	e.POST("/register/email", h.UserHandler.PostEmail)
-	e.POST("/register/password", h.UserHandler.PostPassword)
-	e.POST("/register/verify", h.UserHandler.PostVerify)
+	e.GET("/signIn", uh.GetSignIn)
+	e.POST("/signIn", uh.PostSignIn)
+	e.GET("/register", uh.GetRegister)
+	e.POST("/register", uh.PostRegister)
+	e.POST("/register/username", uh.PostUsername)
+	e.POST("/register/email", uh.PostEmail)
+	e.POST("/register/password", uh.PostPassword)
+	e.POST("/register/verify", uh.PostVerify)
 
 	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }

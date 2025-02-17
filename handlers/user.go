@@ -6,47 +6,69 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rodrigo462003/FlickMeter/email"
-	"github.com/rodrigo462003/FlickMeter/model"
+	"github.com/rodrigo462003/FlickMeter/service"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
 
-type UserHandler struct {
-	userStore   model.UserStore
-	emailSender email.EmailSender
+type userHandler struct {
+	service service.UserService
 }
 
-func NewUserHandler(us model.UserStore, es email.EmailSender) *UserHandler {
-	return &UserHandler{us, es}
+func NewUserHandler(us service.UserService) *userHandler {
+	return &userHandler{us}
 }
 
-func (uh UserHandler) GetSignIn(c echo.Context) error {
+func (h userHandler) GetSignIn(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.SignIn())
 }
 
-func (uh UserHandler) PostSignIn(c echo.Context) error {
+func (h userHandler) PostSignIn(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.BaseBody())
 }
 
-type registerForm struct {
-	Username string `form:"username"`
-	Email    string `form:"email"`
-	Password string `form:"password"`
-}
-
-func (uh UserHandler) GetRegister(c echo.Context) error {
+func (h userHandler) GetRegister(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.Register())
 }
 
-func (uh UserHandler) PostRegister(c echo.Context) error {
-	var rForm registerForm
-	err := c.Bind(&rForm)
-	if err != nil {
+func (h *userHandler) PostVerify(c echo.Context) error {
+	if err := c.Request().ParseForm(); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if err := model.NewUser(rForm.Username, rForm.Email, rForm.Password, uh.userStore, uh.emailSender); err != nil {
+	digits := c.Request().Form["code"]
+	if len(digits) != 6 {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	code := strings.Join(digits, "")
+	if len(code) != 6 {
+		return c.NoContent(http.StatusUnprocessableEntity)
+	}
+
+	err := h.service.VerifyUser(code, c.FormValue("email"))
+	if err != nil {
+		return c.NoContent(http.StatusOK)
+	}
+
+	if vErr, ok := err.(service.ValidationError); ok {
+		return c.String(statusCode(vErr), vErr.Message())
+	}
+
+	return c.NoContent(http.StatusInternalServerError)
+}
+
+func (h userHandler) PostRegister(c echo.Context) error {
+	form := struct {
+		Username string `form:"username"`
+		Email    string `form:"email"`
+		Password string `form:"password"`
+	}{}
+	if err := c.Bind(&form); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := h.service.CreateUser(form.Username, form.Email, form.Password); err != nil {
 		var sErr model.StatusErrors
+
 		if errors.As(err, &sErr) {
 			vm := sErr.Map()
 			return Render(c, sErr.StatusCode(), templates.FormInvalid(vm))
@@ -57,54 +79,44 @@ func (uh UserHandler) PostRegister(c echo.Context) error {
 	return Render(c, http.StatusCreated, templates.FormVerifyCode(rForm.Email))
 }
 
-func (uh *UserHandler) PostVerify(c echo.Context) error {
-	err := c.Request().ParseForm()
-	if err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-	digits := c.Request().Form["code"]
-	if len(digits) != 6 {
-		return c.NoContent(http.StatusBadRequest)
-	}
-	code := strings.Join(digits, "")
-	if len(code) != 6 {
-		return c.NoContent(http.StatusUnprocessableEntity)
+func (h *userHandler) PostUsername(c echo.Context) error {
+	err := h.service.ValidateUsername(c.FormValue("username"))
+	if err == nil {
+		return c.NoContent(http.StatusOK)
 	}
 
-	email := c.FormValue("email")
-
-	statError := model.VerifyUser(code, email, uh.userStore)
-	if statError != nil {
-		return c.String(statError.StatusCode(), statError.Error())
+	if vErr, ok := err.(service.ValidationError); ok {
+		return c.String(statusCode(vErr), vErr.Message())
 	}
 
-	return c.NoContent(http.StatusOK)
+	c.Logger().Error(err)
+	return c.NoContent(http.StatusInternalServerError)
 }
 
-func (uh *UserHandler) PostUsername(c echo.Context) error {
-	err := model.ValidUsername(c.FormValue("username"), uh.userStore)
-	if err != nil {
-		return c.String(err.StatusCode(), err.Error())
+func (h *userHandler) PostEmail(c echo.Context) error {
+	err := h.service.ValidateEmail(c.FormValue("email"))
+	if err == nil {
+		return c.NoContent(http.StatusOK)
 	}
 
-	return c.NoContent(http.StatusOK)
+	if vErr, ok := err.(service.ValidationError); ok {
+		return c.String(statusCode(vErr), vErr.Message())
+	}
+
+	c.Logger().Error(err)
+	return c.NoContent(http.StatusInternalServerError)
 }
 
-func (uh *UserHandler) PostEmail(c echo.Context) error {
-	err := model.ValidEmail(c.FormValue("email"))
-	if err != nil {
-		return c.String(err.StatusCode(), err.Error())
+func (h *userHandler) PostPassword(c echo.Context) error {
+	err := h.service.ValidatePassword(c.FormValue("password"))
+	if err == nil {
+		return c.NoContent(http.StatusOK)
 	}
 
-	return c.NoContent(http.StatusOK)
-}
-
-func (uh *UserHandler) PostPassword(c echo.Context) error {
-	password := c.FormValue("password")
-	err := model.ValidPassword(password)
-	if err != nil {
-		return c.String(err.StatusCode(), err.Error())
+	if vErr, ok := err.(service.ValidationError); ok {
+		return c.String(statusCode(vErr), vErr.Message())
 	}
 
-	return c.String(http.StatusOK, "")
+	c.Logger().Error(err)
+	return c.NoContent(http.StatusInternalServerError)
 }
