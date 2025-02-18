@@ -4,19 +4,23 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"log/slog"
 	"math/big"
-	"net/http"
 	"net/mail"
 	"strconv"
 	"time"
 	"unicode/utf8"
 
 	"github.com/rivo/uniseg"
-	"github.com/rodrigo462003/FlickMeter/email"
 	"github.com/rodrigo462003/FlickMeter/hashing"
 	"gorm.io/gorm"
 )
+
+type VerificationCode struct {
+	gorm.Model
+	UserID    uint      `gorm:"not null;index;"`
+	Code      string    `gorm:"not null"`
+	ExpiresAt time.Time `gorm:"not null"`
+}
 
 type User struct {
 	gorm.Model
@@ -27,68 +31,7 @@ type User struct {
 	VerificationCodes []VerificationCode `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
-type VerificationCode struct {
-	gorm.Model
-	UserID    uint      `gorm:"not null;index;"`
-	Code      string    `gorm:"not null"`
-	ExpiresAt time.Time `gorm:"not null"`
-}
-
-func (u *User) hashPassword() error {
-	hash, err := hashing.HashPassword([]byte(u.Password))
-	if err != nil {
-		return err
-	}
-
-	u.Password = hash
-	return nil
-}
-
-func newVerificationCode(User *User, us UserStore) (string, StatusCoder) {
-	if len(User.VerificationCodes) == 5 {
-		anyRemoved := false
-		for _, vc := range User.VerificationCodes {
-			if vc.ExpiresAt.Before(time.Now()) {
-				if err := us.DeleteVCode(&vc); err == nil {
-					anyRemoved = true
-				}
-			}
-		}
-		if !anyRemoved {
-			return "", NewStatusError(http.StatusConflict, "Can't request more codes. Try again later.")
-		}
-	}
-
-	code := ""
-	for i := 0; i < 6; i++ {
-		num, err := rand.Int(rand.Reader, big.NewInt(9))
-		if err != nil {
-			slog.Error(err.Error())
-			return "", InternalServerError()
-		}
-		code += strconv.FormatUint(num.Uint64(), 10)
-	}
-
-	vc := &VerificationCode{
-		UserID:    User.ID,
-		Code:      code,
-		ExpiresAt: time.Now().Add(15 * time.Minute),
-	}
-
-	err := us.CreateVCode(vc)
-	if err != nil {
-		slog.Error(err.Error())
-		return "", InternalServerError()
-	}
-
-	return code, nil
-}
-
-func NewUser(username, email, password string) *User {
-	return &User{Username: username, Email: email, Password: password}
-}
-
-func NewUsername(username string) error {
+func ValidateUsername(username string) error {
 	const (
 		maxLen = 15
 		minLen = 3
@@ -129,7 +72,7 @@ func NewUsername(username string) error {
 	return nil
 }
 
-func NewEmail(email string) error {
+func ValidateEmail(email string) error {
 	if len(email) == 0 {
 		return errors.New("* Email address is required.")
 	}
@@ -141,7 +84,7 @@ func NewEmail(email string) error {
 	return nil
 }
 
-func NewPassword(password string) error {
+func ValidatePassword(password string) error {
 	const (
 		MaxLen = 128
 		MinLen = 8
@@ -163,5 +106,48 @@ func NewPassword(password string) error {
 		return fmt.Errorf("* Must contain at least %d characters.", MinLen)
 	}
 
+	return nil
+}
+
+func NewUser(username, email, password string) *User {
+	return &User{Username: username, Email: email, Password: password}
+}
+
+func (u *User) hashPassword() error {
+	hash, err := hashing.HashPassword([]byte(u.Password))
+	if err != nil {
+		return err
+	}
+
+	u.Password = hash
+	return nil
+}
+
+func (u *User) RemoveExpiredCodes() {
+	now := time.Now()
+	for i := len(u.VerificationCodes) - 1; i >= 0; i-- {
+		if u.VerificationCodes[i].ExpiresAt.Before(now) {
+			u.VerificationCodes = append(u.VerificationCodes[:i], u.VerificationCodes[i+1:]...)
+		}
+	}
+}
+
+func (u *User) NewVerificationCode() error {
+	code := ""
+	for i := 0; i < 6; i++ {
+		num, err := rand.Int(rand.Reader, big.NewInt(9))
+		if err != nil {
+			return err
+		}
+		code += strconv.FormatUint(num.Uint64(), 10)
+	}
+
+	vc := VerificationCode{
+		UserID:    u.ID,
+		Code:      code,
+		ExpiresAt: time.Now().Add(15 * time.Minute),
+	}
+
+	u.VerificationCodes = append(u.VerificationCodes, vc)
 	return nil
 }

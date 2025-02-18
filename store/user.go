@@ -9,10 +9,8 @@ import (
 type UserStore interface {
 	UsernameExists(string) (bool, error)
 	FirstOrCreate(*model.User) (bool, error)
-	CreateVCode(*model.VerificationCode) error
 	GetByID(uint) (*model.User, error)
 	GetByEmail(string) (*model.User, error)
-	DeleteVCode(*model.VerificationCode) error
 	Save(*model.User) error
 }
 
@@ -56,12 +54,4 @@ func (us *userStore) FirstOrCreate(user *model.User) (bool, error) {
 
 func (us *userStore) Save(u *model.User) error {
 	return us.db.Save(u).Error
-}
-
-func (us *userStore) CreateVCode(vc *model.VerificationCode) error {
-	return us.db.Create(vc).Error
-}
-
-func (us *userStore) DeleteVCode(vc *model.VerificationCode) error {
-	return us.db.Delete(vc).Error
 }

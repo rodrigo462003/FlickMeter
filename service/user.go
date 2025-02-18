@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/rodrigo462003/FlickMeter/email"
@@ -9,8 +10,8 @@ import (
 )
 
 type UserService interface {
-	ValidatePassword(password string) error
-	ValidateEmail(email string) error
+	ValidatePassword(password string) ValidationError
+	ValidateEmail(email string) ValidationError
 	ValidateUsername(username string) error
 	CreateUser(username, email, password string) error
 	VerifyUser(code, email string) error
@@ -25,16 +26,16 @@ func NewUserService(us store.UserStore, es email.EmailSender) *userService {
 	return &userService{us, es}
 }
 
-func (s *userService) ValidatePassword(password string) error {
-	if err := model.NewPassword(password); err != nil {
+func (s *userService) ValidatePassword(password string) ValidationError {
+	if err := model.ValidatePassword(password); err != nil {
 		return NewValidationError(err.Error(), ErrUnprocessable)
 	}
 
 	return nil
 }
 
-func (s *userService) ValidateEmail(email string) error {
-	if err := model.NewEmail(email); err != nil {
+func (s *userService) ValidateEmail(email string) ValidationError {
+	if err := model.ValidateEmail(email); err != nil {
 		return NewValidationError(err.Error(), ErrUnprocessable)
 	}
 
@@ -42,7 +43,7 @@ func (s *userService) ValidateEmail(email string) error {
 }
 
 func (s *userService) ValidateUsername(username string) error {
-	if err := model.NewUsername(username); err != nil {
+	if err := model.ValidateUsername(username); err != nil {
 		return NewValidationError(err.Error(), ErrUnprocessable)
 	}
 
@@ -51,26 +52,61 @@ func (s *userService) ValidateUsername(username string) error {
 		return err
 	}
 	if isDupe {
-		return NewValidationError(err.Error(), ErrConflict)
+		return NewValidationError("* Username already taken.", ErrConflict)
 	}
 
 	return nil
 }
 
 func (s *userService) validateUser(user *model.User) error {
-	errMap := make(map[string]string, 3)
+	vErrs := make(map[string]ValidationError)
 	if err := s.ValidateUsername(user.Username); err != nil {
-		errMap["username"] = err.Error()
+		if vErr, ok := err.(ValidationError); ok {
+			vErrs["username"] = vErr
+		} else {
+			return err
+		}
 	}
 	if err := s.ValidateEmail(user.Email); err != nil {
-		errMap["email"] = err.Error()
+		vErrs["email"] = err
 	}
 	if err := s.ValidatePassword(user.Password); err != nil {
-		errMap["password"] = err.Error()
+		vErrs["password"] = err
 	}
 
-	if len(errMap) > 0 {
-		return NewValidationErrors()
+	if len(vErrs) > 0 {
+		return NewValidationErrors(vErrs)
+	}
+
+	return nil
+}
+
+func (s *userService) removeExpired(user *model.User) error {
+	user.RemoveExpiredCodes()
+	if err := s.store.Save(user); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *userService) createVerificationCode(user *model.User) error {
+	if len(user.VerificationCodes) == 5 {
+		err := s.removeExpired(user)
+		if err != nil {
+			return err
+		}
+		if len(user.VerificationCodes) == 5 {
+			return NewValidationError("* Can't request more codes. Try again later.", ErrConflict)
+		}
+	}
+
+	if err := user.NewVerificationCode(); err != nil {
+		return err
+	}
+
+	if err := s.store.Save(user); err != nil {
+		return err
 	}
 
 	return nil
@@ -81,51 +117,50 @@ func (s *userService) CreateUser(username, email, password string) error {
 
 	user := model.NewUser(username, email, password)
 	if err := s.validateUser(user); err != nil {
-		if vErr, ok := err.(service.ValidationError); ok {
-			return
-		}
+		return err
 	}
 
 	tmpU := *user
 	created, err := s.store.FirstOrCreate(user)
 	if err != nil {
-		return InternalServerError()
+		return err
 	}
 	if !created {
 		if user.Verified {
 			if user.Username == tmpU.Username && user.Email != tmpU.Email {
-				return NewStatusErrors(http.StatusConflict, map[string]string{"username": "Username already taken."})
+				return NewValidationErrors(map[string]ValidationError{
+					"username": NewValidationError("* Username already taken.", ErrConflict),
+				})
 			}
 			if user.Email == tmpU.Email {
-				s.sender.SendMail(User.Email, emailSubject, "You already have a FlickMeter account, try signing in.")
+				s.sender.SendMail(user.Email, emailSubject, "You already have a FlickMeter account, try signing in.")
 				return nil
 			}
-			slog.Error(err.Error())
-			return InternalServerError()
+			panic("Unexpected state: verified user has a username and email conflict")
 		}
 
-		if user.Username == tmpU.Username && User.Email != tmpU.Email {
-			return NewStatusErrors(http.StatusConflict, map[string]string{"username": "Username already taken."})
+		if user.Username == tmpU.Username && user.Email != tmpU.Email {
+			return NewValidationErrors(map[string]ValidationError{
+				"username": NewValidationError("* Username already taken.", ErrConflict),
+			})
 		}
 		if user.Email == tmpU.Email {
-			user.Username, user.Password = user.Username, user.Password
+			user.Username, user.Password = tmpU.Username, tmpU.Password
 			if err := s.store.Save(user); err != nil {
-				slog.Error(err.Error())
-				return InternalServerError()
+				return err
 			}
 		} else {
-			slog.Error(err.Error())
-			return InternalServerError()
+			panic("Unexpected state: verified user has a username and email conflict")
 		}
 	}
 
-	code, codeErr := newVerificationCode(user, us)
-	if err != nil {
-		return codeErr
+	if err := s.createVerificationCode(user); err != nil {
+		return err
 	}
 
+	code := user.VerificationCodes[len(user.VerificationCodes)-1].Code
 	emailBody := fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%s", code)
-	es.SendMail(User.Email, emailSubject, emailBody)
+	s.sender.SendMail(user.Email, emailSubject, emailBody)
 
 	return nil
 }
