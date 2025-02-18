@@ -40,16 +40,17 @@ type ValidationErrors interface {
 	FieldToError() map[string]ValidationError
 	error
 }
+
 type validationErrors struct {
 	errorMap map[string]ValidationError
 }
 
-func NewValidationErrors(errors map[string]ValidationError) *validationErrors {
-	return &validationErrors{errors}
+func NewValidationErrors(errorMap map[string]ValidationError) ValidationErrors {
+	return &validationErrors{errorMap}
 }
 
 func (e *validationErrors) Error() string {
-	return fmt.Sprintf("Validation Errors: %s", e.FieldToError)
+	return fmt.Sprintf("Validation Errors: %s", e.errorMap)
 }
 
 func (e *validationErrors) FieldToError() map[string]ValidationError {
@@ -57,10 +58,9 @@ func (e *validationErrors) FieldToError() map[string]ValidationError {
 }
 
 func (e *validationErrors) FieldToMessage() map[string]string {
-	messages := make(map[string]string, 3)
+	messageMap := make(map[string]string)
 	for field, err := range e.errorMap {
-		messages[field] = err.Message()
+		messageMap[field] = err.Message()
 	}
-
-	return messages
+	return messageMap
 }

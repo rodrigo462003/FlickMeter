@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 
@@ -45,7 +44,7 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 	}
 
 	err := h.service.VerifyUser(code, c.FormValue("email"))
-	if err != nil {
+	if err == nil {
 		return c.NoContent(http.StatusOK)
 	}
 
@@ -67,16 +66,19 @@ func (h userHandler) PostRegister(c echo.Context) error {
 	}
 
 	if err := h.service.CreateUser(form.Username, form.Email, form.Password); err != nil {
-		var sErr model.StatusErrors
-
-		if errors.As(err, &sErr) {
-			vm := sErr.Map()
-			return Render(c, sErr.StatusCode(), templates.FormInvalid(vm))
+		if vErrs, ok := err.(service.ValidationErrors); ok {
+			//Fix Here
+			return Render(c, statusCode(vErrs.FieldToError()["username"]), templates.FormInvalid(vErrs.FieldToMessage()))
 		}
-		return c.String(err.StatusCode(), err.Error())
+		if vErr, ok := err.(service.ValidationError); ok {
+			//Fix Here
+			return c.String(statusCode(vErr), vErr.Message())
+		}
+		c.Logger().Error(err)
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return Render(c, http.StatusCreated, templates.FormVerifyCode(rForm.Email))
+	return Render(c, http.StatusCreated, templates.FormVerifyCode(form.Email))
 }
 
 func (h *userHandler) PostUsername(c echo.Context) error {
@@ -94,29 +96,16 @@ func (h *userHandler) PostUsername(c echo.Context) error {
 }
 
 func (h *userHandler) PostEmail(c echo.Context) error {
-	err := h.service.ValidateEmail(c.FormValue("email"))
-	if err == nil {
-		return c.NoContent(http.StatusOK)
+	if err := h.service.ValidateEmail(c.FormValue("email")); err != nil {
+		return c.String(statusCode(err), err.Message())
 	}
-
-	if vErr, ok := err.(service.ValidationError); ok {
-		return c.String(statusCode(vErr), vErr.Message())
-	}
-
-	c.Logger().Error(err)
-	return c.NoContent(http.StatusInternalServerError)
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *userHandler) PostPassword(c echo.Context) error {
-	err := h.service.ValidatePassword(c.FormValue("password"))
-	if err == nil {
-		return c.NoContent(http.StatusOK)
+	if err := h.service.ValidatePassword(c.FormValue("password")); err != nil {
+		return c.String(statusCode(err), err.Message())
 	}
 
-	if vErr, ok := err.(service.ValidationError); ok {
-		return c.String(statusCode(vErr), vErr.Message())
-	}
-
-	c.Logger().Error(err)
-	return c.NoContent(http.StatusInternalServerError)
+	return c.NoContent(http.StatusOK)
 }
