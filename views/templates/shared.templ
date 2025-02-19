@@ -56,7 +56,10 @@ templ formTitleContainer() {
 }
 
 templ formContainer() {
-	<div id="formContainer" class="p-8 flex flex-col sm:flex-row items-center justify-center space-y-10 sm:space-y-0 sm:space-x-10">
+	<div
+		id="formContainer"
+		class="p-8 flex flex-col sm:flex-row items-center justify-center space-y-10 sm:space-y-0 sm:space-x-10"
+	>
 		{ children... }
 	</div>
 }
@@ -136,9 +139,9 @@ templ label(id, labelTxt string) {
 templ checkbox(id, labelTxt string) {
 	<div class="flex items-start">
 		<input
-            checked
+			checked
 			id={ id }
-            value="true"
+			value="true"
 			type="checkbox"
 			name={ id }
 			class="peer h-4 w-4 cursor-pointer focus:outline-none focus:outline-offset-1 focus:outline-indigo-700 appearance-none rounded border border-indigo-700 checked:bg-indigo-700 "

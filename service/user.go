@@ -112,56 +112,64 @@ func (s *userService) createVerificationCode(user *model.User) error {
 	return nil
 }
 
+func (s *userService) handleExistingUser(existingUser *model.User, newUser *model.User) error {
+	if existingUser.Verified {
+		if existingUser.Username == newUser.Username && existingUser.Email != newUser.Email {
+			return NewValidationErrors(map[string]ValidationError{
+				"username": NewValidationError("* Username already taken.", ErrConflict),
+			})
+		}
+		if existingUser.Email == newUser.Email {
+			return NewValidationError("*User already verified.", errAlreadyVerified)
+		}
+		panic("Unexpected state: verified user has a username and email conflict")
+	}
+
+	if existingUser.Username == newUser.Username && existingUser.Email != newUser.Email {
+		return NewValidationErrors(map[string]ValidationError{
+			"username": NewValidationError("* Username already taken.", ErrConflict),
+		})
+	}
+	if existingUser.Email == newUser.Email {
+		return nil
+	}
+
+	panic("Unexpected state: unverified user has a username and email conflict")
+}
+
 func (s *userService) CreateUser(username, email, password string) error {
-	const emailSubject = "FlickMeter registration"
+	const (
+		emailSubject = "FlickMeter registration"
+		codeBodyF    = "Please enter the following code to complete your Signup.\r\n%s"
+		verifiedBody = "You already have a FlickMeter account, try signing in."
+	)
 
 	user := model.NewUser(username, email, password)
 	if err := s.validateUser(user); err != nil {
 		return err
 	}
 
-	tmpU := *user
+	newUser := *user
 	created, err := s.store.FirstOrCreate(user)
 	if err != nil {
 		return err
 	}
 	if !created {
-		if user.Verified {
-			if user.Username == tmpU.Username && user.Email != tmpU.Email {
-				return NewValidationErrors(map[string]ValidationError{
-					"username": NewValidationError("* Username already taken.", ErrConflict),
-				})
-			}
-			if user.Email == tmpU.Email {
-				s.sender.SendMail(user.Email, emailSubject, "You already have a FlickMeter account, try signing in.")
+		if err := s.handleExistingUser(user, &newUser); err != nil {
+			if vErr, ok := err.(*validationError); ok && vErr.Is(errAlreadyVerified) {
+				s.sender.SendMail(newUser.Email, emailSubject, verifiedBody)
 				return nil
 			}
-			panic("Unexpected state: verified user has a username and email conflict")
-		}
-
-		if user.Username == tmpU.Username && user.Email != tmpU.Email {
-			return NewValidationErrors(map[string]ValidationError{
-				"username": NewValidationError("* Username already taken.", ErrConflict),
-			})
-		}
-		if user.Email == tmpU.Email {
-			user.Username, user.Password = tmpU.Username, tmpU.Password
-			if err := s.store.Save(user); err != nil {
-				return err
-			}
-		} else {
-			panic("Unexpected state: verified user has a username and email conflict")
+			return err
 		}
 	}
 
 	if err := s.createVerificationCode(user); err != nil {
 		return err
 	}
-
 	code := user.VerificationCodes[len(user.VerificationCodes)-1].Code
-	emailBody := fmt.Sprintf("Please enter the following code to complete your Signup.\r\n%s", code)
-	s.sender.SendMail(user.Email, emailSubject, emailBody)
 
+	s.sender.SendMail(user.Email, emailSubject, fmt.Sprintf(codeBodyF, code))
 	return nil
 }
 
