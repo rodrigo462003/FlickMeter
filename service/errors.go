@@ -7,6 +7,7 @@ import (
 
 var ErrConflict = errors.New("Conflict")
 var ErrUnprocessable = errors.New("Invalid")
+var errAlreadyVerified = errors.New("Already Verified")
 
 type ValidationError interface {
 	Is(target error) bool
