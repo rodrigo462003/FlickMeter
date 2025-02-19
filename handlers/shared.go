@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"math"
 	"net/http"
 
 	"github.com/a-h/templ"
@@ -29,6 +30,27 @@ func statusCode(err service.ValidationError) int {
 	default:
 		panic("This shouldn't happen, All ValidationError types should be covered by the previous cases.")
 	}
+}
+
+func priorityStatusCode(err service.ValidationErrors) int {
+	priorityMap := map[int]int{
+		http.StatusConflict:            0,
+		http.StatusUnprocessableEntity: 1,
+	}
+
+	prio, pCode := math.MaxInt, http.StatusUnprocessableEntity
+	for _, err := range err.FieldToError() {
+		sc := statusCode(err)
+		if r, ok := priorityMap[sc]; ok {
+			if r < prio {
+				prio, pCode = r, sc
+			}
+		} else {
+			panic("This shouldn't happen, All ValidationError types should be covered by priorityMap.")
+		}
+	}
+
+	return pCode
 }
 
 func GetHome(c echo.Context) error {
