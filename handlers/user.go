@@ -66,19 +66,18 @@ func (h userHandler) PostRegister(c echo.Context) error {
 	}
 
 	if err := h.service.CreateUser(form.Username, form.Email, form.Password); err != nil {
-		if vErrs, ok := err.(service.ValidationErrors); ok {
-			//Fix Here
-			return Render(c, statusCode(vErrs.FieldToError()["username"]), templates.FormInvalid(vErrs.FieldToMessage()))
+		switch e := err.(type) {
+		case service.ValidationErrors:
+			return Render(c, priorityStatusCode(e), templates.FormInvalid(e.FieldToMessage()))
+		case service.ValidationError:
+			return Render(c, statusCode(e), templates.FormVerifyCode(form.Email, e.Message()))
+		default:
+			c.Logger().Error(err)
+			return c.NoContent(http.StatusInternalServerError)
 		}
-		if vErr, ok := err.(service.ValidationError); ok {
-			//Fix Here
-			return c.String(statusCode(vErr), vErr.Message())
-		}
-		c.Logger().Error(err)
-		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return Render(c, http.StatusCreated, templates.FormVerifyCode(form.Email))
+	return Render(c, http.StatusCreated, templates.FormVerifyCode(form.Email, ""))
 }
 
 func (h *userHandler) PostUsername(c echo.Context) error {
