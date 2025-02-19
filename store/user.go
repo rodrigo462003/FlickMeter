@@ -52,6 +52,7 @@ func (us *userStore) FirstOrCreate(user *model.User) (bool, error) {
 	return false, nil
 }
 
-func (us *userStore) Save(u *model.User) error {
-	return us.db.Save(u).Error
+func (us *userStore) Save(user *model.User) error {
+	//Make sure it saves Associations..
+	return us.db.Save(&user).Error
 }
