@@ -83,7 +83,7 @@ func (s *userService) validateUser(user *model.User) error {
 
 func (s *userService) removeExpired(user *model.User) error {
 	user.RemoveExpiredCodes()
-	if err := s.store.Save(user); err != nil {
+	if err := s.store.UpdateVerificationCodes(user); err != nil {
 		return err
 	}
 
@@ -146,6 +146,10 @@ func (s *userService) CreateUser(username, email, password string) error {
 
 	user := model.NewUser(username, email, password)
 	if err := s.validateUser(user); err != nil {
+		return err
+	}
+
+	if err := user.HashPassword(); err != nil {
 		return err
 	}
 
