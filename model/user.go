@@ -113,7 +113,7 @@ func NewUser(username, email, password string) *User {
 	return &User{Username: username, Email: email, Password: password}
 }
 
-func (u *User) hashPassword() error {
+func (u *User) HashPassword() error {
 	hash, err := hashing.HashPassword([]byte(u.Password))
 	if err != nil {
 		return err

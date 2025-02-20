@@ -12,6 +12,7 @@ type UserStore interface {
 	GetByID(uint) (*model.User, error)
 	GetByEmail(string) (*model.User, error)
 	Save(*model.User) error
+	UpdateVerificationCodes(*model.User) error
 }
 
 type userStore struct {
@@ -53,6 +54,9 @@ func (us *userStore) FirstOrCreate(user *model.User) (bool, error) {
 }
 
 func (us *userStore) Save(user *model.User) error {
-	//Make sure it saves Associations..
-	return us.db.Save(&user).Error
+	return us.db.Save(user).Error
+}
+
+func (us *userStore) UpdateVerificationCodes(user *model.User) error {
+	return us.db.Unscoped().Model(user).Association("VerificationCodes").Unscoped().Replace(user.VerificationCodes)
 }
