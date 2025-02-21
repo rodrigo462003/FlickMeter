@@ -96,18 +96,19 @@ templ inputValid(labelTxt, type_, id, placeholder, autocomplete string, required
 			}
 		/>
 		@label(id, labelTxt)
-		<div class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full" id={ id + "Err" }>
-			{ message }
-		</div>
+        @messageDiv(id, message)
 	</div>
 }
 
-templ Oob(target, message string) {
-	<div
-		hx-swap-oob={ "outerHTML:#" + target }
-		class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full"
-		id={ target }
-	>{ message }</div>
+templ messageDiv(id , message string) {
+    <div class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full" id={ id + "Err" }>
+        { message }
+    </div>
+}
+templ messageOOB(id , message string) {
+    <div hx-swap-oob={"#" + id + "Err"} class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full" id={ id + "Err" }>
+        { message }
+    </div>
 }
 
 templ input(labelTxt, type_, id, placeholder, autocomplete string, required bool) {

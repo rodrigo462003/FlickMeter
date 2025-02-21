@@ -10,7 +10,7 @@ templ modal() {
 	></dialog>
 	<script>
     function hideForm(event) {
-        if (event.detail.requestConfig.elt.id === "submit") {
+        if (event.detail.requestConfig.elt.id === "submit" && event.target.id === "modal") {
             document.getElementById("formContainer").style.display = 'none';
         }
     }

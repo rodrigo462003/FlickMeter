@@ -20,15 +20,9 @@ templ Register() {
 
 //func newHtmx(hxPath, hxParams, hxTarget, hxTargetErr, hxSwap string, post bool)
 templ FormInvalid(vm map[string]string) {
-	@form() {
-		@inputValid("Username", "text", "username", "JohnDoe48", "username", true, vm["username"],
-			newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
-		@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, vm["email"],
-			newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
-		@inputValid("Password", "password", "password", "", "new-password", true, vm["password"],
-			newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
-		@button("submit", "submit", "Register", newHtmx("/register", "", "#modal", "#form", "afterbegin", true))
-	}
+    for k, v := range vm{
+        @messageOOB(k, v)
+    }
 }
 
 templ FormVerifyCode(email string, message string) {
@@ -118,7 +112,8 @@ templ digitInput() {
 		hx-post="/register/verify"
 		hx-trigger="beforeinput changed"
 		hx-include="#form"
-		hx-target="#codeForm"
+		hx-target="#codeErr"
+        hx-target-4*="#codeErr"
 		inputmode="numeric"
 		class="digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
             placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none
