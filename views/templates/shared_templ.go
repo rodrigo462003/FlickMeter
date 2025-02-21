@@ -899,7 +899,7 @@ func label(id, labelTxt string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "\" class=\"transition-transform -translate-y-[48px] peer-placeholder-shown:-translate-y-[29px] peer-focus:-translate-y-[48px] peer-hover:-translate-y-[48px] left-2 select-none absolute px-0.5 block bg-white text-sm font-bold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "\" class=\"transition-all -top-[10px] peer-placeholder-shown:top-[10px] peer-focus:-top-[10px] peer-hover:-top-[10px] left-2 select-none absolute px-0.5 block bg-white text-sm font-bold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
