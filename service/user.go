@@ -112,19 +112,20 @@ func (s *userService) createVerificationCode(user *model.User) error {
 	return nil
 }
 
-func (s *userService) handleExistingUser(existingUser *model.User, newUser *model.User) error {
-	if existingUser.Verified {
-		if existingUser.Username == newUser.Username && existingUser.Email != newUser.Email {
-			return NewValidationErrors(map[string]ValidationError{
-				"username": NewValidationError("* Username already taken.", ErrConflict),
-			})
-		}
-		if existingUser.Email == newUser.Email {
-			return NewValidationError("*User already verified.", errAlreadyVerified)
-		}
-		panic("Unexpected state: verified user has a username and email conflict")
+func handleVerified(existingUser *model.User, newUser *model.User) error {
+	if existingUser.Username == newUser.Username && existingUser.Email != newUser.Email {
+		return NewValidationErrors(map[string]ValidationError{
+			"username": NewValidationError("* Username already taken.", ErrConflict),
+		})
+	}
+	if existingUser.Email == newUser.Email {
+		return NewValidationError("*User already verified.", errAlreadyVerified)
 	}
 
+	panic("Unexpected state: verified user has a username and email conflict")
+}
+
+func handleUnverified(existingUser *model.User, newUser *model.User) error {
 	if existingUser.Username == newUser.Username && existingUser.Email != newUser.Email {
 		return NewValidationErrors(map[string]ValidationError{
 			"username": NewValidationError("* Username already taken.", ErrConflict),
@@ -135,6 +136,14 @@ func (s *userService) handleExistingUser(existingUser *model.User, newUser *mode
 	}
 
 	panic("Unexpected state: unverified user has a username and email conflict")
+}
+
+func handleExistingUser(existingUser *model.User, newUser *model.User) error {
+	if existingUser.Verified {
+		handleVerified(existingUser, newUser)
+	}
+
+	return handleUnverified(existingUser, newUser)
 }
 
 func (s *userService) CreateUser(username, email, password string) error {
@@ -148,7 +157,6 @@ func (s *userService) CreateUser(username, email, password string) error {
 	if err := s.validateUser(user); err != nil {
 		return err
 	}
-
 	if err := user.HashPassword(); err != nil {
 		return err
 	}
@@ -159,7 +167,7 @@ func (s *userService) CreateUser(username, email, password string) error {
 		return err
 	}
 	if !created {
-		if err := s.handleExistingUser(user, &newUser); err != nil {
+		if err := handleExistingUser(user, &newUser); err != nil {
 			if vErr, ok := err.(*validationError); ok && vErr.Is(errAlreadyVerified) {
 				s.sender.SendMail(newUser.Email, emailSubject, verifiedBody)
 				return nil
@@ -171,6 +179,7 @@ func (s *userService) CreateUser(username, email, password string) error {
 	if err := s.createVerificationCode(user); err != nil {
 		return err
 	}
+
 	code := user.VerificationCodes[len(user.VerificationCodes)-1].Code
 
 	s.sender.SendMail(user.Email, emailSubject, fmt.Sprintf(codeBodyF, code))
