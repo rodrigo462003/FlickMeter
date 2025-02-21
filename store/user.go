@@ -1,18 +1,24 @@
 package store
 
 import (
+	"errors"
+	"strings"
+
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/rodrigo462003/FlickMeter/model"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type UserStore interface {
 	UsernameExists(string) (bool, error)
-	FirstOrCreate(*model.User) (bool, error)
+	EmailExists(string) (bool, error)
+	Create(*model.User) error
 	GetByID(uint) (*model.User, error)
 	GetByEmail(string) (*model.User, error)
 	Save(*model.User) error
-	UpdateVerificationCodes(*model.User) error
+	GetVCodesByEmail(string) ([]model.VerificationCode, error)
+	CreateVCode(*model.VerificationCode) error
+	DeleteVCodes([]model.VerificationCode) error
 }
 
 type userStore struct {
@@ -26,37 +32,58 @@ func NewUserStore(db *gorm.DB) *userStore {
 }
 
 func (us *userStore) UsernameExists(username string) (exists bool, err error) {
-	err = us.db.Raw("SELECT EXISTS (SELECT 1 FROM users WHERE LOWER(username) = LOWER(?) AND verified = TRUE)", username).Scan(&exists).Error
+	err = us.db.Raw("SELECT EXISTS (SELECT 1 FROM users WHERE LOWER(username) = LOWER(?))", username).Scan(&exists).Error
+	return exists, err
+}
+
+func (us *userStore) EmailExists(email string) (exists bool, err error) {
+	err = us.db.Raw("SELECT EXISTS (SELECT 1 FROM users WHERE LOWER(email) = LOWER(?))", email).Scan(&exists).Error
 	return exists, err
 }
 
 func (us *userStore) GetByID(id uint) (user *model.User, err error) {
-	err = us.db.Preload(clause.Associations).First(&user, id).Error
+	err = us.db.First(&user, id).Error
 	return user, err
 }
 
 func (us *userStore) GetByEmail(email string) (user *model.User, err error) {
-	err = us.db.Preload(clause.Associations).Where("email = ?", email).First(&user).Error
+	err = us.db.Where("email = ?", email).First(&user).Error
 	return user, err
 }
 
-func (us *userStore) FirstOrCreate(user *model.User) (bool, error) {
-	result := us.db.Preload("VerificationCodes").Where("username = ? OR email = ?", user.Username, user.Email).FirstOrCreate(&user)
-	if err := result.Error; err != nil {
-		return false, err
+var ErrDuplicateEmail = errors.New("* Email already taken.")
+var ErrDuplicateUsername = errors.New("* Username already taken.")
+
+func (us *userStore) Create(user *model.User) error {
+	if err := us.db.Create(&user).Error; err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
+			if strings.Contains(pgErr.Message, "username") {
+				return ErrDuplicateUsername
+			}
+			if strings.Contains(pgErr.Message, "email") {
+				return ErrDuplicateEmail
+			}
+		}
+
+		return err
 	}
 
-	if result.RowsAffected != 0 {
-		return true, nil
-	}
-
-	return false, nil
+	return nil
 }
 
 func (us *userStore) Save(user *model.User) error {
 	return us.db.Save(user).Error
 }
 
-func (us *userStore) UpdateVerificationCodes(user *model.User) error {
-	return us.db.Unscoped().Model(user).Association("VerificationCodes").Unscoped().Replace(user.VerificationCodes)
+func (us *userStore) GetVCodesByEmail(email string) (vc []model.VerificationCode, err error) {
+	err = us.db.Where("email = ?", email).Find(&vc).Error
+	return vc, err
+}
+
+func (us *userStore) CreateVCode(vCode *model.VerificationCode) error {
+	return us.db.Create(vCode).Error
+}
+
+func (us *userStore) DeleteVCodes(vCodes []model.VerificationCode) error {
+	return us.db.Delete(&vCodes).Error
 }

@@ -1,12 +1,9 @@
 package model
 
 import (
-	"crypto/rand"
 	"errors"
 	"fmt"
-	"math/big"
 	"net/mail"
-	"strconv"
 	"time"
 	"unicode/utf8"
 
@@ -17,18 +14,9 @@ import (
 
 type VerificationCode struct {
 	gorm.Model
-	UserID    uint      `gorm:"not null;index;"`
+	Email     string    `gorm:"not null;index;"`
 	Code      string    `gorm:"not null"`
 	ExpiresAt time.Time `gorm:"not null"`
-}
-
-type User struct {
-	gorm.Model
-	Username          string             `gorm:"type:varchar(15);unique;not null"`
-	Email             string             `gorm:"type:varchar(254);unique;not null"`
-	Password          string             `gorm:"type:varchar(255);not null"`
-	Verified          bool               `gorm:"default:false;not null"`
-	VerificationCodes []VerificationCode `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 func ValidateUsername(username string) error {
@@ -120,34 +108,5 @@ func (u *User) HashPassword() error {
 	}
 
 	u.Password = hash
-	return nil
-}
-
-func (u *User) RemoveExpiredCodes() {
-	now := time.Now()
-	for i := len(u.VerificationCodes) - 1; i >= 0; i-- {
-		if u.VerificationCodes[i].ExpiresAt.Before(now) {
-			u.VerificationCodes = append(u.VerificationCodes[:i], u.VerificationCodes[i+1:]...)
-		}
-	}
-}
-
-func (u *User) NewVerificationCode() error {
-	code := ""
-	for i := 0; i < 6; i++ {
-		num, err := rand.Int(rand.Reader, big.NewInt(9))
-		if err != nil {
-			return err
-		}
-		code += strconv.FormatUint(num.Uint64(), 10)
-	}
-
-	vc := VerificationCode{
-		UserID:    u.ID,
-		Code:      code,
-		ExpiresAt: time.Now().Add(15 * time.Minute),
-	}
-
-	u.VerificationCodes = append(u.VerificationCodes, vc)
 	return nil
 }

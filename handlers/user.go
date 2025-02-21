@@ -9,6 +9,12 @@ import (
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
 
+type registerForm struct {
+	Username string `form:"username"`
+	Email    string `form:"email"`
+	Password string `form:"password"`
+}
+
 type userHandler struct {
 	service service.UserService
 }
@@ -43,29 +49,34 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 		return c.NoContent(http.StatusUnprocessableEntity)
 	}
 
-	err := h.service.VerifyUser(code, c.FormValue("email"))
-	if err == nil {
-		return c.NoContent(http.StatusOK)
-	}
-
-	if vErr, ok := err.(service.ValidationError); ok {
-		return c.String(statusCode(vErr), vErr.Message())
-	}
-
-	return c.NoContent(http.StatusInternalServerError)
-}
-
-func (h userHandler) PostRegister(c echo.Context) error {
-	form := struct {
-		Username string `form:"username"`
-		Email    string `form:"email"`
-		Password string `form:"password"`
-	}{}
-	if err := c.Bind(&form); err != nil {
+	form := &registerForm{}
+	if err := c.Bind(form); err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if err := h.service.CreateUser(form.Username, form.Email, form.Password); err != nil {
+	if err := h.service.VerifyUser(code, form.Username, form.Email, form.Password); err != nil {
+		switch e := err.(type) {
+		case service.ValidationErrors:
+			return Render(c, priorityStatusCode(e), templates.FormInvalid(e.FieldToMessage()))
+		case service.ValidationError:
+			return c.String(statusCode(e), e.Message())
+		default:
+			c.Logger().Error(err)
+			c.NoContent(http.StatusInternalServerError)
+		}
+	}
+
+	c.Response().Header().Set("HX-Redirect", "/")
+	return c.NoContent(http.StatusCreated)
+}
+
+func (h userHandler) PostRegister(c echo.Context) error {
+	form := &registerForm{}
+	if err := c.Bind(form); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := h.service.Register(form.Username, form.Email, form.Password); err != nil {
 		switch e := err.(type) {
 		case service.ValidationErrors:
 			return Render(c, priorityStatusCode(e), templates.FormInvalid(e.FieldToMessage()))
