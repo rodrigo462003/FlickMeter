@@ -13,7 +13,7 @@ func newHtmx(hxPath, hxParams, hxTarget, hxTargetErr, hxSwap string, post bool) 
 	return htmx{hxPath, hxParams, hxTarget, hxTargetErr, hxSwap, post}
 }
 
-templ button(id string, type_, text string, hx htmx) {
+templ button(id, type_, text string, hx htmx) {
 	<button
 		id={ id }
 		type={ type_ }
@@ -55,8 +55,11 @@ templ formTitleContainer() {
 	</div>
 }
 
-templ formContainer(id string) {
+templ formContainer(id string, hidden bool) {
 	<div
+    if hidden {
+       style="display:none"
+    }
 		id={id}
 		class="p-8 flex flex-col sm:flex-row items-center justify-center space-y-10 sm:space-y-0 sm:space-x-10"
 	>

@@ -1,58 +1,58 @@
 package templates
 
 templ Register() {
-	@formContainer("registerContainer") {
-		@formTitleContainer() {
-			<h1 class="text-7xl">Join</h1>
-			<h1>Flickmeter</h1>
-		}
-		@form() {
-			@inputValid("Username", "text", "username", "JohnDoe48", "username", true, "",
-				newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
-			@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, "",
-				newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
-			@inputValid("Password", "password", "password", "", "new-password", true, "",
-				newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
-			@button("submit", "submit", "Register", newHtmx("/register", "", "#modal", "#modal", "afterbegin", true))
-		}
-	}
+@formContainer("registerContainer", false) {
+@formTitleContainer() {
+<h1 class="text-7xl">Join</h1>
+<h1>Flickmeter</h1>
+}
+@form() {
+@inputValid("Username", "text", "username", "JohnDoe48", "username", true, "",
+newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true))
+@inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, "",
+newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
+@inputValid("Password", "password", "password", "", "new-password", true, "",
+newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
+@button("submit", "submit", "Register", newHtmx("/register", "", "#codeContainer", "#codeContainer", "", true))
+}
+}
+@formContainer("codeContainer", true)
 }
 
 //func newHtmx(hxPath, hxParams, hxTarget, hxTargetErr, hxSwap string, post bool)
 templ FormInvalid(vm map[string]string) {
-    for k, v := range vm{
-        @messageOOB(k, v)
-    }
+for k, v := range vm {
+@messageOOB(k, v)
+}
 }
 
 templ FormVerifyCode(email string, message string) {
-	@formContainer("codeContainer") {
-		<div id="codeForm" class="p-8 flex flex-col items-center justify-center space-y-6">
-			<div class="w-full">
-				<div class="w-full">
-					<div class="text-indigo-700 text-xl sm:text-3xl font-extrabold">
-						Enter your verification code
-					</div>
-					<div class="pt-2 md:text-sm text-gray-900 text-xs justify-start">
-						<div class="inline-block whitespace-nowrap">
-							<pre>We sent a 6-digit code to </pre>
-						</div>
-						<div class="border-none outline-0 inline-block font-bold">
-							{ email }
-						</div>
-					</div>
-					<div class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full" id="codeErr">
-						{ message }
-					</div>
-				</div>
-			</div>
-			<div class="w-full flex flex-col items-center items justify-center">
-				<form id="form" class="w-full flex flex-col flex-grow text-indigo-700 space-y-4">
-					<div class="w-full max-w-full flex space-x-2 md:space-x-4">
-						for range 6 {
-							@digitInput()
-						}
-						<script>
+<div id="codeForm" class="p-8 flex flex-col items-center justify-center space-y-6">
+    <div class="w-full">
+        <div class="w-full">
+            <div class="text-indigo-700 text-xl sm:text-3xl font-extrabold">
+                Enter your verification code
+            </div>
+            <div class="pt-2 md:text-sm text-gray-900 text-xs justify-start">
+                <div class="inline-block whitespace-nowrap">
+                    <pre>We sent a 6-digit code to </pre>
+                </div>
+                <div class="border-none outline-0 inline-block font-bold">
+                    { email }
+                </div>
+            </div>
+            <div class="transition-all empty:h-0 h-2.5 ml-1 mt-1 text-red-700 text-xs w-full" id="codeErr">
+                { message }
+            </div>
+        </div>
+    </div>
+    <div class="w-full flex flex-col items-center items justify-center">
+        <form id="form" class="w-full flex flex-col flex-grow text-indigo-700 space-y-4">
+            <div class="w-full max-w-full flex space-x-2 md:space-x-4">
+                for range 6 {
+                @digitInput()
+                }
+                <script>
                     setupDigitInputs();
                     function setupDigitInputs() {
                         let digitInputs = document.getElementsByClassName('digitInput');
@@ -98,25 +98,15 @@ templ FormVerifyCode(email string, message string) {
                         }
                     }
                 </script>
-					</div>
-				</form>
-			</div>
-		</div>
-	}
+            </div>
+        </form>
+    </div>
+</div>
 }
 
 templ digitInput() {
-	<input
-		name="code"
-		maxlength="1"
-		hx-post="/register/verify"
-		hx-trigger="beforeinput changed"
-		hx-include="#form"
-		hx-target="#codeErr"
-        hx-target-4*="#codeErr"
-		inputmode="numeric"
-		class="digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
+<input name="code" maxlength="1" hx-post="/register/verify" hx-trigger="beforeinput changed" hx-include="#form"
+    hx-target="#codeErr" hx-target-4*="#codeErr" inputmode="numeric" class="digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100
             placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none
-            focus:outline-indigo-700 p-2"
-	/>
+            focus:outline-indigo-700 p-2" />
 }

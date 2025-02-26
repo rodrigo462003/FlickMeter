@@ -59,24 +59,24 @@ func (s *userService) ValidateUsername(username string) error {
 }
 
 func (s *userService) validateUser(user *model.User) error {
-	vErrs := make(map[string]ValidationError)
+	vErrs := NewValidationErrors()
 	if err := s.ValidateUsername(user.Username); err != nil {
 		if vErr, ok := err.(ValidationError); ok {
-			vErrs["username"] = vErr
+			vErrs.add("username", vErr)
 		} else {
 			return err
 		}
 	}
 	if err := s.ValidateEmail(user.Email); err != nil {
-		vErrs["email"] = err
+		vErrs.add("email", err)
 	}
 
 	if err := s.ValidatePassword(user.Password); err != nil {
-		vErrs["password"] = err
+		vErrs.add("password", err)
 	}
 
-	if len(vErrs) > 0 {
-		return NewValidationErrors(vErrs)
+	if len(vErrs.errorMap) > 0 {
+		return vErrs
 	}
 
 	return nil
@@ -177,7 +177,7 @@ func (s *userService) Verify(subCode, username, email, password string) error {
 	}
 
 	if !verify {
-		return NewValidationError("* Incorrect code.", ErrConflict)
+		return NewValidationError("* Incorrect code, try again.", ErrConflict)
 	}
 
 	user := model.NewUser(username, email, password)
@@ -188,11 +188,9 @@ func (s *userService) Verify(subCode, username, email, password string) error {
 	if err := s.store.Create(user); err != nil {
 		switch err {
 		case store.ErrDuplicateEmail:
-			//TODO: This is a duplicate code, refactor it to a function and we should tell user that email is already taken.
-			return NewValidationErrors(map[string]ValidationError{"email": NewValidationError("* Email already taken.", ErrConflict)})
+			return NewValidationError("* Incorrect code, try again", ErrConflict)
 		case store.ErrDuplicateUsername:
-			//This is better be we need to make sure it goes to the appropriate form by showing the hidden one.
-			return NewValidationErrors(map[string]ValidationError{"username": NewValidationError("* Username already taken.", ErrConflict)})
+			return NewValidationErrorsSingle("username", "* Username already taken.", ErrConflict)
 		default:
 			return err
 		}

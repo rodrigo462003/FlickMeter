@@ -45,7 +45,20 @@ type validationErrors struct {
 	errorMap map[string]ValidationError
 }
 
-func NewValidationErrors(errorMap map[string]ValidationError) ValidationErrors {
+func NewValidationErrors() *validationErrors {
+	return &validationErrors{make(map[string]ValidationError)}
+}
+
+func NewValidationErrorsSingle(field, message string, sentinel error) *validationErrors {
+	vErr := NewValidationError(message, sentinel)
+	return &validationErrors{map[string]ValidationError{field: vErr}}
+}
+
+func (ve *validationErrors) add(field string, err ValidationError) {
+	ve.errorMap[field] = err
+}
+
+func (v *validationErrors) Errors(errorMap map[string]ValidationError) ValidationErrors {
 	return &validationErrors{errorMap}
 }
 
