@@ -55,9 +55,9 @@ templ formTitleContainer() {
 	</div>
 }
 
-templ formContainer() {
+templ formContainer(id string) {
 	<div
-		id="formContainer"
+		id={id}
 		class="p-8 flex flex-col sm:flex-row items-center justify-center space-y-10 sm:space-y-0 sm:space-x-10"
 	>
 		{ children... }

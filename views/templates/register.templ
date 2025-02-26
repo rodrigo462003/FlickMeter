@@ -1,7 +1,7 @@
 package templates
 
 templ Register() {
-	@formContainer() {
+	@formContainer("registerContainer") {
 		@formTitleContainer() {
 			<h1 class="text-7xl">Join</h1>
 			<h1>Flickmeter</h1>
@@ -13,7 +13,7 @@ templ Register() {
 				newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true))
 			@inputValid("Password", "password", "password", "", "new-password", true, "",
 				newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true))
-			@button("submit", "submit", "Register", newHtmx("/register", "", "#modal", "#form", "afterbegin", true))
+			@button("submit", "submit", "Register", newHtmx("/register", "", "#modal", "#modal", "afterbegin", true))
 		}
 	}
 }
@@ -26,7 +26,7 @@ templ FormInvalid(vm map[string]string) {
 }
 
 templ FormVerifyCode(email string, message string) {
-	@formContainer() {
+	@formContainer("codeContainer") {
 		<div id="codeForm" class="p-8 flex flex-col items-center justify-center space-y-6">
 			<div class="w-full">
 				<div class="w-full">
