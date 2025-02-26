@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -79,6 +80,7 @@ func (h userHandler) PostRegister(c echo.Context) error {
 	if err := h.service.Register(form.Username, form.Email, form.Password); err != nil {
 		switch e := err.(type) {
 		case service.ValidationErrors:
+			fmt.Println(e)
 			return Render(c, priorityStatusCode(e), templates.FormInvalid(e.FieldToMessage()))
 		case service.ValidationError:
 			return Render(c, statusCode(e), templates.FormVerifyCode(form.Email, e.Message()))

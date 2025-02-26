@@ -1,17 +1,15 @@
 package templates
 
 templ modal() {
-	<dialog
-		tabindex="-1"
-		class="font-mono w-3/4 md:w-[650px] focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black"
-		id="modal"
-		hx-on::before-swap="hideForm(event)"
-		hx-on::after-settle="event.target.id === 'modal' && event.detail.xhr.status !== 201 ? toggleModal() : null"
-	></dialog>
-	<script>
+<dialog tabindex="-1"
+    class="font-mono w-3/4 md:w-[650px] focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black" id="modal"
+    hx-on::before-swap="hideForm(event)"
+    hx-on::after-settle="event.target.id === 'modal' && event.detail.xhr.status === 200 ? toggleModal() : null">
+</dialog>
+<script>
     function hideForm(event) {
-        if (event.detail.requestConfig.elt.id === "submit" && event.target.id === "modal") {
-            document.getElementById("formContainer").style.display = 'none';
+        if (event.detail.serverResponse.includes("codeForm")) {
+            document.getElementById("registerContainer").style.display = 'none';
         }
     }
 

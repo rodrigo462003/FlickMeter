@@ -18,7 +18,7 @@ type User struct {
 
 func NewVerificationCode(email string) (*VerificationCode, error) {
 	code := ""
-	for i := 0; i < 6; i++ {
+	for range 6{
 		num, err := rand.Int(rand.Reader, big.NewInt(9))
 		if err != nil {
 			return nil, err
