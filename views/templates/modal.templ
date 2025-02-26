@@ -10,6 +10,12 @@ templ modal() {
     function hideForm(event) {
         if (event.detail.serverResponse.includes("codeForm")) {
             document.getElementById("registerContainer").style.display = 'none';
+            document.getElementById("codeContainer").style.display = '';
+            return
+        }
+        if (event.detail.serverResponse.includes("usernameErr")) {
+            document.getElementById("codeContainer").style.display = 'none';
+            document.getElementById("registerContainer").style.display = '';
         }
     }
 
