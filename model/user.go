@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
-	"time"
 	"unicode/utf8"
 
 	"github.com/rivo/uniseg"
@@ -12,11 +11,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type VerificationCode struct {
+type User struct {
 	gorm.Model
-	Email     string    `gorm:"not null;index;"`
-	Code      string    `gorm:"not null"`
-	ExpiresAt time.Time `gorm:"not null"`
+	Username string `gorm:"type:varchar(15);unique;not null"`
+	Email    string `gorm:"type:varchar(254);unique;not null"`
+	Password string `gorm:"type:varchar(255);not null"`
 }
 
 func ValidateUsername(username string) error {
@@ -66,7 +65,7 @@ func ValidateEmail(email string) error {
 	}
 
 	if _, err := mail.ParseAddress(email); err != nil {
-		return errors.New("* This is not a valid email address.")
+		return errors.New("* Invalid email address.")
 	}
 
 	return nil
