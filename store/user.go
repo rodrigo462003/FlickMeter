@@ -18,7 +18,7 @@ type UserStore interface {
 	Save(*model.User) error
 	GetVCodesByEmail(string) ([]model.VerificationCode, error)
 	CreateVCode(*model.VerificationCode) error
-	DeleteVCodes([]model.VerificationCode) error
+	DeleteVCode(model.VerificationCode) error
 }
 
 type userStore struct {
@@ -84,6 +84,6 @@ func (us *userStore) CreateVCode(vCode *model.VerificationCode) error {
 	return us.db.Create(vCode).Error
 }
 
-func (us *userStore) DeleteVCodes(vCodes []model.VerificationCode) error {
-	return us.db.Delete(&vCodes).Error
+func (us *userStore) DeleteVCode(vCode model.VerificationCode) error {
+	return us.db.Delete(&vCode).Error
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/rodrigo462003/FlickMeter/email"
@@ -82,25 +83,20 @@ func (s *userService) validateUser(user *model.User) error {
 	return nil
 }
 
-func (s *userService) removeExpired(verificationCodes []model.VerificationCode) ([]model.VerificationCode, error) {
-	expiredCodes := make([]model.VerificationCode, 0, 5)
-	nonExpiredCodes := make([]model.VerificationCode, 0, 5)
-
-	for _, vCode := range verificationCodes {
-		if vCode.ExpiresAt.Before(time.Now()) {
-			expiredCodes = append(expiredCodes, vCode)
-		} else {
-			nonExpiredCodes = append(nonExpiredCodes, vCode)
+func (s *userService) removeExpired(vCodes *[]model.VerificationCode) error {
+	var err error
+	now := time.Now()
+	*vCodes = slices.DeleteFunc(*vCodes, func(vCode model.VerificationCode) bool {
+		if !vCode.ExpiresAt.Before(now) {
+			return false
 		}
-	}
-
-	if len(expiredCodes) > 0 {
-		if err := s.store.DeleteVCodes(expiredCodes); err != nil {
-			return nil, err
+		if err = s.store.DeleteVCode(vCode); err != nil {
+			return false
 		}
-	}
+		return true
+	})
 
-	return nonExpiredCodes, nil
+	return err
 }
 
 func (s *userService) createVerificationCode(email string) (*model.VerificationCode, error) {
@@ -109,12 +105,10 @@ func (s *userService) createVerificationCode(email string) (*model.VerificationC
 		return nil, err
 	}
 	if len(vCodes) == 5 {
-		vCodes, err = s.removeExpired(vCodes)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(vCodes) == 5 {
+		if err := s.removeExpired(&vCodes); len(vCodes) == 5 {
+			if err != nil {
+				return nil, err
+			}
 			return nil, NewValidationError("* Can't request more codes. Try again later.", ErrConflict)
 		}
 	}
@@ -162,24 +156,36 @@ func (s *userService) Register(username, email, password string) error {
 	return nil
 }
 
-func (s *userService) Verify(subCode, username, email, password string) error {
+func (s *userService) Verify(code, username, email, password string) error {
+	if err := s.isValidCode(code, email); err != nil {
+		return err
+	}
+
+	if err := s.createUser(username, email, password); err != nil {
+		return err
+	}
+
+	//TODO AUTH. JUST DB AUTH, JUST SESSION OR BOTH?
+	return nil
+}
+
+func (s *userService) isValidCode(email, code string) error {
 	vCodes, err := s.store.GetVCodesByEmail(email)
 	if err != nil {
 		return err
 	}
 
-	verify := false
-	for _, code := range vCodes {
-		if code.ExpiresAt.After(time.Now()) && subCode == code.Code {
-			verify = true
-			break
-		}
-	}
-
-	if !verify {
+	now := time.Now()
+	if !slices.ContainsFunc(vCodes, func(dbCode model.VerificationCode) bool {
+		return dbCode.ExpiresAt.After(now) && code == dbCode.Code
+	}) {
 		return NewValidationError("* Incorrect code, try again.", ErrConflict)
 	}
 
+	return nil
+}
+
+func (s *userService) createUser(username, email, password string) error {
 	user := model.NewUser(username, email, password)
 	if err := user.HashPassword(); err != nil {
 		return err
