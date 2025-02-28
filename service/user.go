@@ -17,7 +17,7 @@ type UserService interface {
 	ValidateEmail(email string) ValidationError
 	ValidateUsername(username string) error
 	Register(username, email, password string) error
-	Verify(code, username, email, password string) error
+	Verify(code, username, email, password string) (*http.Cookie, error)
 }
 
 type userService struct {

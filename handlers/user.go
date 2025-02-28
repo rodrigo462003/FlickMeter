@@ -54,7 +54,8 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if err := h.service.Verify(code, form.Username, form.Email, form.Password); err != nil {
+	cookie, err := h.service.Verify(code, form.Username, form.Email, form.Password)
+	if err != nil {
 		switch e := err.(type) {
 		case service.ValidationErrors:
 			return Render(c, priorityStatusCode(e), templates.FormInvalid(e.FieldToMessage()))
@@ -66,6 +67,7 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 		}
 	}
 
+	c.SetCookie(cookie)
 	c.Response().Header().Set("HX-Redirect", "/")
 	return c.NoContent(http.StatusCreated)
 }
