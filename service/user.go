@@ -2,9 +2,11 @@ package service
 
 import (
 	"fmt"
+	"net/http"
 	"slices"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rodrigo462003/FlickMeter/email"
 	"github.com/rodrigo462003/FlickMeter/model"
 	"github.com/rodrigo462003/FlickMeter/store"
@@ -156,17 +158,38 @@ func (s *userService) Register(username, email, password string) error {
 	return nil
 }
 
-func (s *userService) Verify(code, username, email, password string) error {
+func (s *userService) Verify(code, username, email, password string) (*http.Cookie, error) {
 	if err := s.isValidCode(code, email); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := s.createUser(username, email, password); err != nil {
-		return err
+		return nil, err
 	}
 
-	//TODO AUTH. JUST DB AUTH, JUST SESSION OR BOTH?
-	return nil
+	cookie, err := newCookie()
+	if err != nil {
+		return nil, err
+	}
+
+	return cookie, nil
+}
+
+func newCookie() (*http.Cookie, error) {
+	uuid, err := uuid.NewUUID()
+	if err != nil {
+		return nil, err
+	}
+
+	cookie := &http.Cookie{
+		Name:     "session",
+		Value:    uuid.String(),
+		Path:     "/",
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	return cookie, nil
 }
 
 func (s *userService) isValidCode(email, code string) error {
