@@ -159,7 +159,7 @@ func (s *userService) Register(username, email, password string) error {
 }
 
 func (s *userService) Verify(code, username, email, password string) (*http.Cookie, error) {
-	if err := s.isValidCode(code, email); err != nil {
+	if err := s.isValidCode(email, code); err != nil {
 		return nil, err
 	}
 
@@ -182,10 +182,11 @@ func newCookie() (*http.Cookie, error) {
 	}
 
 	cookie := &http.Cookie{
-		Name:     "session",
-		Value:    uuid.String(),
-		Path:     "/",
-		Secure:   true,
+		Name:  "session",
+		Value: uuid.String(),
+		Path:  "/",
+		//CURRENTLY NOT SECURE.
+		Secure:   false,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	}
@@ -199,6 +200,7 @@ func (s *userService) isValidCode(email, code string) error {
 	}
 
 	now := time.Now()
+	fmt.Println(email, vCodes, code)
 	if !slices.ContainsFunc(vCodes, func(dbCode model.VerificationCode) bool {
 		return dbCode.ExpiresAt.After(now) && code == dbCode.Code
 	}) {

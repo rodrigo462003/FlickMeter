@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -67,6 +68,7 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 		}
 	}
 
+	fmt.Println(cookie)
 	c.SetCookie(cookie)
 	c.Response().Header().Set("HX-Redirect", "/")
 	return c.NoContent(http.StatusCreated)
