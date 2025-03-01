@@ -15,18 +15,16 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
+	env, err := godotenv.Read()
+	if err != nil {
 		panic(err)
 	}
 
-	connSTR := os.Getenv("CONN_STR")
-	gmailPw, from := os.Getenv("GMAIL_APP_PW"), os.Getenv("EMAIL")
-	host, port := os.Getenv("EMAIL_HOST"), os.Getenv("EMAIL_PORT")
-
-	es := email.NewMailSender(from, gmailPw, host, port)
-	db := db.New(connSTR)
-	us := store.NewUserStore(db)
-	uh := handlers.NewUserHandler(service.NewUserService(us, es))
+	sessionStore := store.NewSessionStore(env["REDIS_ADDR"])
+	userStore := store.NewUserStore(db.New(env["CONN_STR"]))
+	emailSender := email.NewMailSender(env["EMAIL_ADDR"], env["EMAIL_PW"], env["EMAIL_HOST"], env["EMAIL_PORT"])
+	userService := service.NewUserService(userStore, sessionStore, emailSender)
+	userHandler := handlers.NewUserHandler(userService)
 
 	e := echo.New()
 	e.Debug = true
@@ -37,14 +35,14 @@ func main() {
 	e.Static("/public", "./public")
 	e.GET("/", handlers.GetHome)
 
-	e.GET("/signIn", uh.GetSignIn)
-	e.POST("/signIn", uh.PostSignIn)
-	e.GET("/register", uh.GetRegister)
-	e.POST("/register", uh.PostRegister)
-	e.POST("/register/username", uh.PostUsername)
-	e.POST("/register/email", uh.PostEmail)
-	e.POST("/register/password", uh.PostPassword)
-	e.POST("/register/verify", uh.PostVerify)
+	e.GET("/signIn", userHandler.GetSignIn)
+	e.POST("/signIn", userHandler.PostSignIn)
+	e.GET("/register", userHandler.GetRegister)
+	e.POST("/register", userHandler.PostRegister)
+	e.POST("/register/username", userHandler.PostUsername)
+	e.POST("/register/email", userHandler.PostEmail)
+	e.POST("/register/password", userHandler.PostPassword)
+	e.POST("/register/verify", userHandler.PostVerify)
 
 	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
 }
