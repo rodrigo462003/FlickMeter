@@ -100,12 +100,6 @@ func NewUser(username, email, password string) *User {
 	return &User{Username: username, Email: email, Password: password}
 }
 
-func (u *User) HashPassword() error {
-	hash, err := hashing.HashPassword([]byte(u.Password))
-	if err != nil {
-		return err
-	}
-
-	u.Password = hash
-	return nil
+func (u *User) MustHashPassword() {
+	u.Password = hashing.MustHashPassword([]byte(u.Password))
 }

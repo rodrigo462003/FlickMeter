@@ -176,21 +176,14 @@ func (s *userService) Verify(code, username, email, password string) (*http.Cook
 }
 
 func newCookie() (*http.Cookie, error) {
-	uuid, err := uuid.NewUUID()
-	if err != nil {
-		return nil, err
-	}
-
-	cookie := &http.Cookie{
-		Name:  "session",
-		Value: uuid.String(),
-		Path:  "/",
-		//CURRENTLY NOT SECURE.
-		Secure:   false,
+	return &http.Cookie{
+		Name:     "session",
+		Value:    uuid.NewString(),
+		Path:     "/",
+		Secure:   false, //SET TO SECURE FOR HTTPS.
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
-	}
-	return cookie, nil
+	}, nil
 }
 
 func (s *userService) isValidCode(email, code string) error {
@@ -212,9 +205,7 @@ func (s *userService) isValidCode(email, code string) error {
 
 func (s *userService) createUser(username, email, password string) error {
 	user := model.NewUser(username, email, password)
-	if err := user.HashPassword(); err != nil {
-		return err
-	}
+	user.MustHashPassword()
 
 	if err := s.store.Create(user); err != nil {
 		switch err {
@@ -222,9 +213,8 @@ func (s *userService) createUser(username, email, password string) error {
 			return NewValidationError("* Incorrect code, try again", ErrConflict)
 		case store.ErrDuplicateUsername:
 			return NewValidationErrorsSingle("username", "* Username already taken.", ErrConflict)
-		default:
-			return err
 		}
+		return err
 	}
 
 	return nil

@@ -27,9 +27,8 @@ func statusCode(err service.ValidationError) int {
 		return http.StatusConflict
 	case err.Is(service.ErrUnprocessable):
 		return http.StatusUnprocessableEntity
-	default:
-		panic("This shouldn't happen, All ValidationError types should be covered by the previous cases.")
 	}
+	panic("This shouldn't happen, All ValidationError types should be covered by the previous cases.")
 }
 
 func priorityStatusCode(err service.ValidationErrors) int {

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -38,12 +38,12 @@ func (h userHandler) GetRegister(c echo.Context) error {
 
 func (h *userHandler) PostVerify(c echo.Context) error {
 	if err := c.Request().ParseForm(); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return echo.ErrBadRequest.WithInternal(err)
 	}
 
 	digits := c.Request().Form["code"]
 	if len(digits) != 6 {
-		return c.NoContent(http.StatusBadRequest)
+		return echo.ErrBadRequest.WithInternal(errors.New("Form needs to have 6 code fields."))
 	}
 	code := strings.Join(digits, "")
 	if len(code) != 6 {
@@ -52,7 +52,7 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 
 	form := &registerForm{}
 	if err := c.Bind(form); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return echo.ErrBadRequest.WithInternal(err)
 	}
 
 	cookie, err := h.service.Verify(code, form.Username, form.Email, form.Password)
@@ -62,13 +62,10 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 			return Render(c, priorityStatusCode(e), templates.FormInvalid(e.FieldToMessage()))
 		case service.ValidationError:
 			return c.String(statusCode(e), e.Message())
-		default:
-			c.Logger().Error(err)
-			c.NoContent(http.StatusInternalServerError)
 		}
+		return err
 	}
 
-	fmt.Println(cookie)
 	c.SetCookie(cookie)
 	c.Response().Header().Set("HX-Redirect", "/")
 	return c.NoContent(http.StatusCreated)
@@ -77,7 +74,7 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 func (h userHandler) PostRegister(c echo.Context) error {
 	form := &registerForm{}
 	if err := c.Bind(form); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return echo.ErrBadRequest.WithInternal(err)
 	}
 
 	if err := h.service.Register(form.Username, form.Email, form.Password); err != nil {
@@ -86,10 +83,8 @@ func (h userHandler) PostRegister(c echo.Context) error {
 			return Render(c, priorityStatusCode(e), templates.FormInvalid(e.FieldToMessage()))
 		case service.ValidationError:
 			return Render(c, statusCode(e), templates.FormVerifyCode(form.Email, e.Message()))
-		default:
-			c.Logger().Error(err)
-			return c.NoContent(http.StatusInternalServerError)
 		}
+		return err
 	}
 
 	return Render(c, http.StatusCreated, templates.FormVerifyCode(form.Email, ""))
@@ -105,8 +100,7 @@ func (h *userHandler) PostUsername(c echo.Context) error {
 		return c.String(statusCode(vErr), vErr.Message())
 	}
 
-	c.Logger().Error(err)
-	return c.NoContent(http.StatusInternalServerError)
+	return err
 }
 
 func (h *userHandler) PostEmail(c echo.Context) error {
