@@ -21,12 +21,13 @@ type UserService interface {
 }
 
 type userService struct {
-	store  store.UserStore
-	sender email.EmailSender
+	userStore    store.UserStore
+	sender       email.EmailSender
+	sessionStore store.SessionStore
 }
 
-func NewUserService(us store.UserStore, es email.EmailSender) *userService {
-	return &userService{us, es}
+func NewUserService(us store.UserStore, ss store.SessionStore, es email.EmailSender) *userService {
+	return &userService{us, es, ss}
 }
 
 func (s *userService) ValidatePassword(password string) ValidationError {
@@ -50,7 +51,7 @@ func (s *userService) ValidateUsername(username string) error {
 		return NewValidationError(err.Error(), ErrUnprocessable)
 	}
 
-	isDupe, err := s.store.UsernameExists(username)
+	isDupe, err := s.userStore.UsernameExists(username)
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func (s *userService) removeExpired(vCodes *[]model.VerificationCode) error {
 		if !vCode.ExpiresAt.Before(now) {
 			return false
 		}
-		if err = s.store.DeleteVCode(vCode); err != nil {
+		if err = s.userStore.DeleteVCode(vCode); err != nil {
 			return false
 		}
 		return true
@@ -102,7 +103,7 @@ func (s *userService) removeExpired(vCodes *[]model.VerificationCode) error {
 }
 
 func (s *userService) createVerificationCode(email string) (*model.VerificationCode, error) {
-	vCodes, err := s.store.GetVCodesByEmail(email)
+	vCodes, err := s.userStore.GetVCodesByEmail(email)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +121,7 @@ func (s *userService) createVerificationCode(email string) (*model.VerificationC
 		return nil, err
 	}
 
-	if err := s.store.CreateVCode(code); err != nil {
+	if err := s.userStore.CreateVCode(code); err != nil {
 		return nil, err
 	}
 
@@ -139,7 +140,7 @@ func (s *userService) Register(username, email, password string) error {
 		return err
 	}
 
-	exists, err := s.store.EmailExists(user.Email)
+	exists, err := s.userStore.EmailExists(user.Email)
 	if err != nil {
 		return err
 	}
@@ -187,7 +188,7 @@ func newCookie() (*http.Cookie, error) {
 }
 
 func (s *userService) isValidCode(email, code string) error {
-	vCodes, err := s.store.GetVCodesByEmail(email)
+	vCodes, err := s.userStore.GetVCodesByEmail(email)
 	if err != nil {
 		return err
 	}
@@ -207,7 +208,7 @@ func (s *userService) createUser(username, email, password string) error {
 	user := model.NewUser(username, email, password)
 	user.MustHashPassword()
 
-	if err := s.store.Create(user); err != nil {
+	if err := s.userStore.Create(user); err != nil {
 		switch err {
 		case store.ErrDuplicateEmail:
 			return NewValidationError("* Incorrect code, try again", ErrConflict)
