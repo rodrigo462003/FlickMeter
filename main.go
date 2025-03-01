@@ -31,7 +31,9 @@ func main() {
 	e := echo.New()
 	e.Debug = true
 	e.Use(middleware.Secure())
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(6))))
+	e.Use(middleware.Recover())
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(10))))
+
 	e.Static("/public", "./public")
 	e.GET("/", handlers.GetHome)
 
