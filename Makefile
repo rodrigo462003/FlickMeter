@@ -1,6 +1,5 @@
 POSTGRESQL_SERVICE := postgresql
 DATABASE_NAME := flickmeterdb
-REDIS_SERVICE := redis
 
 psgrs:
 	@echo "Starting PostgreSQL service..."
@@ -10,6 +9,7 @@ psgrs:
 
 redis:
 	@echo "Starting Redis server..."
+	sudo systemctl start redis-server.service
 	redis-server --daemonize yes
 
 live/templ:
