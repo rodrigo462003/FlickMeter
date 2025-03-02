@@ -21,19 +21,30 @@ type userHandler struct {
 	service service.UserService
 }
 
-func NewUserHandler(us service.UserService) *userHandler {
-	return &userHandler{us}
+func NewUserHandler(s service.UserService) *userHandler {
+	return &userHandler{s}
 }
 
-func (h userHandler) GetSignIn(c echo.Context) error {
+func (h *userHandler) Register(g *echo.Group) {
+	g.GET("/signIn", h.GetSignIn)
+	g.POST("/signIn", h.PostSignIn)
+	g.GET("/register", h.GetRegister)
+	g.POST("/register", h.PostRegister)
+	g.POST("/register/username", h.PostUsername)
+	g.POST("/register/email", h.PostEmail)
+	g.POST("/register/password", h.PostPassword)
+	g.POST("/register/verify", h.PostVerify)
+}
+
+func (h *userHandler) GetSignIn(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.SignIn())
 }
 
-func (h userHandler) PostSignIn(c echo.Context) error {
+func (h *userHandler) PostSignIn(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.BaseBody())
 }
 
-func (h userHandler) GetRegister(c echo.Context) error {
+func (h *userHandler) GetRegister(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.Register())
 }
 
@@ -84,7 +95,7 @@ func newCookie(uuid uuid.UUID) *http.Cookie {
 	}
 }
 
-func (h userHandler) PostRegister(c echo.Context) error {
+func (h *userHandler) PostRegister(c echo.Context) error {
 	form := &registerForm{}
 	if err := c.Bind(form); err != nil {
 		return echo.ErrBadRequest.WithInternal(err)
