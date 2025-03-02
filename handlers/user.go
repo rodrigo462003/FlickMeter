@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rodrigo462003/FlickMeter/service"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
@@ -55,7 +56,7 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 		return echo.ErrBadRequest.WithInternal(err)
 	}
 
-	cookie, err := h.service.Verify(code, form.Username, form.Email, form.Password)
+	uuid, err := h.service.Verify(code, form.Username, form.Email, form.Password)
 	if err != nil {
 		switch e := err.(type) {
 		case service.ValidationErrors:
@@ -66,9 +67,21 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 		return err
 	}
 
-	c.SetCookie(cookie)
+	c.SetCookie(newCookie(uuid))
 	c.Response().Header().Set("HX-Redirect", "/")
+
 	return c.NoContent(http.StatusCreated)
+}
+
+func newCookie(uuid uuid.UUID) *http.Cookie {
+	return &http.Cookie{
+		Name:     "session",
+		Value:    uuid.String(),
+		Path:     "/",
+		Secure:   false, //SET TO SECURE FOR HTTPS.
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
 }
 
 func (h userHandler) PostRegister(c echo.Context) error {

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -44,5 +42,5 @@ func main() {
 	e.POST("/register/password", userHandler.PostPassword)
 	e.POST("/register/verify", userHandler.PostVerify)
 
-	e.Logger.Fatal(e.Start(os.Getenv("ADDR")))
+	e.Logger.Fatal(e.Start(env["ADDR"]))
 }

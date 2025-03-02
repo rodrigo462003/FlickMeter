@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"net/http"
 	"slices"
 	"time"
 
@@ -17,7 +16,7 @@ type UserService interface {
 	ValidateEmail(email string) ValidationError
 	ValidateUsername(username string) error
 	Register(username, email, password string) error
-	Verify(code, username, email, password string) (*http.Cookie, error)
+	Verify(code, username, email, password string) (uuid.UUID, error)
 }
 
 type userService struct {
@@ -50,7 +49,6 @@ func (s *userService) ValidateUsername(username string) error {
 	if err := model.ValidateUsername(username); err != nil {
 		return NewValidationError(err.Error(), ErrUnprocessable)
 	}
-
 	isDupe, err := s.userStore.UsernameExists(username)
 	if err != nil {
 		return err
@@ -159,32 +157,22 @@ func (s *userService) Register(username, email, password string) error {
 	return nil
 }
 
-func (s *userService) Verify(code, username, email, password string) (*http.Cookie, error) {
+func (s *userService) Verify(code, username, email, password string) (uuid uuid.UUID, err error) {
 	if err := s.isValidCode(email, code); err != nil {
-		return nil, err
+		return uuid, err
 	}
 
-	if err := s.createUser(username, email, password); err != nil {
-		return nil, err
-	}
-
-	cookie, err := newCookie()
+	userID, err := s.createUser(username, email, password)
 	if err != nil {
-		return nil, err
+		return uuid, err
 	}
 
-	return cookie, nil
-}
+	session := model.NewSession(userID)
+	if err := s.sessionStore.Create(session); err != nil {
+		return uuid, err
+	}
 
-func newCookie() (*http.Cookie, error) {
-	return &http.Cookie{
-		Name:     "session",
-		Value:    uuid.NewString(),
-		Path:     "/",
-		Secure:   false, //SET TO SECURE FOR HTTPS.
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	}, nil
+	return session.UUID, nil
 }
 
 func (s *userService) isValidCode(email, code string) error {
@@ -194,7 +182,6 @@ func (s *userService) isValidCode(email, code string) error {
 	}
 
 	now := time.Now()
-	fmt.Println(email, vCodes, code)
 	if !slices.ContainsFunc(vCodes, func(dbCode model.VerificationCode) bool {
 		return dbCode.ExpiresAt.After(now) && code == dbCode.Code
 	}) {
@@ -204,19 +191,19 @@ func (s *userService) isValidCode(email, code string) error {
 	return nil
 }
 
-func (s *userService) createUser(username, email, password string) error {
+func (s *userService) createUser(username, email, password string) (uint, error) {
 	user := model.NewUser(username, email, password)
 	user.MustHashPassword()
 
 	if err := s.userStore.Create(user); err != nil {
 		switch err {
 		case store.ErrDuplicateEmail:
-			return NewValidationError("* Incorrect code, try again", ErrConflict)
+			return 0, NewValidationError("* Incorrect code, try again", ErrConflict)
 		case store.ErrDuplicateUsername:
-			return NewValidationErrorsSingle("username", "* Username already taken.", ErrConflict)
+			return 0, NewValidationErrorsSingle("username", "* Username already taken.", ErrConflict)
 		}
-		return err
+		return 0, err
 	}
 
-	return nil
+	return user.ID, nil
 }

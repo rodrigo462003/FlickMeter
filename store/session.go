@@ -1,8 +1,16 @@
 package store
 
-import "github.com/redis/go-redis/v9"
+import (
+	"context"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+	"github.com/rodrigo462003/FlickMeter/model"
+)
 
 type SessionStore interface {
+	Create(*model.Session) error
+	Renew(*model.Session) error
 }
 
 type sessionStore struct {
@@ -11,7 +19,13 @@ type sessionStore struct {
 
 func NewSessionStore(addr string) *sessionStore {
 	options := &redis.Options{Addr: addr}
-	client := redis.NewClient(options)
+	return &sessionStore{redis.NewClient(options)}
+}
 
-	return &sessionStore{client}
+func (store *sessionStore) Create(s *model.Session) error {
+	return store.db.Set(context.Background(), s.UUID.String(), s.UserID, s.Expire).Err()
+}
+
+func (store *sessionStore) Renew(s *model.Session) error {
+	return store.db.Expire(context.Background(), s.UUID.String(), time.Hour*24).Err()
 }
