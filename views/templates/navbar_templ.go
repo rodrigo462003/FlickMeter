@@ -34,7 +34,7 @@ func navbar(isAuth bool) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if !isAuth {
-			templ_7745c5c3_Err = button("", "button", "Sign In", newHtmx("/signIn", "", "#modal", "", "", false)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = button("", "button", "Sign In", newHtmx("/user/signIn", "", "#modal", "", "", false)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -42,7 +42,7 @@ func navbar(isAuth bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = anchorButton("button", "Register", newHtmx("/register", "", "#modal", "", "", false)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = anchorButton("button", "Register", newHtmx("/user/register", "", "#modal", "", "", false)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

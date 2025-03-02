@@ -80,7 +80,7 @@ func Register() templ.Component {
 				}
 				ctx = templ.InitializeContext(ctx)
 				templ_7745c5c3_Err = inputValid("Username", "text", "username", "JohnDoe48", "username", true, "",
-					newHtmx("/register/username", "username", "#usernameErr", "#usernameErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
+					newHtmx("/user/register/username", "username", "#usernameErr", "#usernameErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -89,7 +89,7 @@ func Register() templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = inputValid("Email", "email", "email", "john@flickmeter.com", "email", true, "",
-					newHtmx("/register/email", "email", "#emailErr", "#emailErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
+					newHtmx("/user/register/email", "email", "#emailErr", "#emailErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -98,7 +98,7 @@ func Register() templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = inputValid("Password", "password", "password", "", "new-password", true, "",
-					newHtmx("/register/password", "password", "#passwordErr", "#passwordErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
+					newHtmx("/user/register/password", "password", "#passwordErr", "#passwordErr", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -106,7 +106,7 @@ func Register() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = button("submit", "submit", "Register", newHtmx("/register", "", "#codeContainer", "#codeContainer", "", true)).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = button("submit", "submit", "Register", newHtmx("/user/register", "", "#codeContainer", "#codeContainer", "", true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -248,7 +248,7 @@ func digitInput() templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<input name=\"code\" maxlength=\"1\" hx-post=\"/register/verify\" hx-trigger=\"beforeinput changed\" hx-include=\"#form\" hx-target=\"#codeErr\" hx-target-4*=\"#codeErr\" inputmode=\"numeric\" class=\"digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100\n            placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none\n            focus:outline-indigo-700 p-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<input name=\"code\" maxlength=\"1\" hx-post=\"user/register/verify\" hx-trigger=\"beforeinput changed\" hx-include=\"#form\" hx-target=\"#codeErr\" hx-target-4*=\"#codeErr\" inputmode=\"numeric\" class=\"digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100\n            placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none\n            focus:outline-indigo-700 p-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -10,7 +10,7 @@ templ SignIn() {
 			@input("Email", "email", "email", "john@flickmeter.com", "email", true)
 			@input("Password", "password", "password", "", "current-password", true)
 			@checkbox("remember", "Remember me")
-			@button("submit", "submit", "Sign In", newHtmx("/signIn", "", "body","", "", true))
+			@button("submit", "submit", "Sign In", newHtmx("/user/signIn", "", "body","", "", true))
 		}
 	}
 }

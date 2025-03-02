@@ -20,27 +20,22 @@ func main() {
 
 	sessionStore := store.NewSessionStore(env["REDIS_ADDR"])
 	userStore := store.NewUserStore(db.New(env["CONN_STR"]))
+
 	emailSender := email.NewMailSender(env["EMAIL_ADDR"], env["EMAIL_PW"], env["EMAIL_HOST"], env["EMAIL_PORT"])
 	userService := service.NewUserService(userStore, sessionStore, emailSender)
 	userHandler := handlers.NewUserHandler(userService)
 
 	e := echo.New()
 	e.Debug = true
-	e.Use(middleware.Secure())
-	e.Use(middleware.Recover())
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(10))))
+	limiterStore := middleware.NewRateLimiterMemoryStore(rate.Limit(10))
+	e.Use(middleware.Secure(),
+		middleware.Recover(),
+		middleware.RateLimiter(limiterStore))
 
 	e.Static("/public", "./public")
 	e.GET("/", handlers.GetHome)
 
-	e.GET("/signIn", userHandler.GetSignIn)
-	e.POST("/signIn", userHandler.PostSignIn)
-	e.GET("/register", userHandler.GetRegister)
-	e.POST("/register", userHandler.PostRegister)
-	e.POST("/register/username", userHandler.PostUsername)
-	e.POST("/register/email", userHandler.PostEmail)
-	e.POST("/register/password", userHandler.PostPassword)
-	e.POST("/register/verify", userHandler.PostVerify)
+	userHandler.Register(e.Group("/user"))
 
 	e.Logger.Fatal(e.Start(env["ADDR"]))
 }
