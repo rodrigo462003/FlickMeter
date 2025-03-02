@@ -29,3 +29,5 @@ node_modules
 tmp
 
 views/templates/*.txt
+
+dump.rdb
