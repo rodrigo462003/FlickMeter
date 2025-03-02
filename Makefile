@@ -1,11 +1,16 @@
 POSTGRESQL_SERVICE := postgresql
 DATABASE_NAME := flickmeterdb
+REDIS_SERVICE := redis
 
 psgrs:
 	@echo "Starting PostgreSQL service..."
 	sudo systemctl start $(POSTGRESQL_SERVICE)
 	#@echo "Running SQL script to create tables if needed..."
 	#sudo -u postgres psql $(DATABASE_NAME) -f ./scripts/create_tables.sql  #
+
+redis:
+	@echo "Starting Redis server..."
+	redis-server --daemonize yes
 
 live/templ:
 	templ generate --watch --proxy="http://localhost:8080" --open-browser=false -v
@@ -34,5 +39,6 @@ live:
 	make -j4 live/templ live/server live/tailwind live/sync_assets
 
 all:
+	make redis
 	make psgrs
 	make live
