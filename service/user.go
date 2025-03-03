@@ -16,7 +16,11 @@ type UserService interface {
 	ValidateUsername(username string) error
 	Register(username, email, password string) error
 	Verify(code, username, email, password string) (*model.Session, error)
-	SignIn(email, password string, remember bool) (*model.Session, error)
+	SignIn(email, password string) (uint, error)
+	CreateSession(userID uint) (*model.Session, error)
+	CreateAuth(userID uint) (*model.Auth, error)
+	GetUserFromAuth(uuid string) (*model.User, error)
+	GetUserFromSession(uuid string) (*model.User, error)
 }
 
 type userService struct {
@@ -29,22 +33,53 @@ func NewUserService(us store.UserStore, ss store.SessionStore, es email.EmailSen
 	return &userService{us, es, ss}
 }
 
-func (s *userService) SignIn(email, password string, remember bool) (*model.Session, error) {
-	user, err := s.userStore.GetByEmail(email)
-	if err != nil {
-		return nil, NewValidationError("* Incorrect Email or Password.", ErrUnauthorized)
-	}
-
-	if !user.PasswordsMatch(password) {
-		return nil, NewValidationError("* Incorrect Email or Password.", ErrUnauthorized)
-	}
-
-	session := model.NewSession(user.ID, remember)
-	if err := s.sessionStore.Create(session); err != nil {
+func (s *userService) CreateSession(userID uint) (*model.Session, error) {
+	session := model.NewSession(userID)
+	if err := s.sessionStore.CreateSession(session); err != nil {
 		return nil, err
 	}
 
 	return session, nil
+}
+
+func (s *userService) CreateAuth(userID uint) (*model.Auth, error) {
+	auth := model.NewAuth(userID)
+	if err := s.sessionStore.CreateAuth(auth); err != nil {
+		return nil, err
+	}
+
+	return auth, nil
+}
+
+func (s *userService) GetUserFromSession(uuid string) (*model.User, error) {
+	id, err := s.sessionStore.GetUserIDBySession(uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.userStore.GetByID(id)
+}
+
+func (s *userService) GetUserFromAuth(uuid string) (*model.User, error) {
+	user, err := s.sessionStore.GetUserByAuth(uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s *userService) SignIn(email, password string) (uint, error) {
+	user, err := s.userStore.GetByEmail(email)
+	if err != nil {
+		return 0, NewValidationError("* Incorrect Email or Password.", ErrUnauthorized)
+	}
+
+	if !user.PasswordsMatch(password) {
+		return 0, NewValidationError("* Incorrect Email or Password.", ErrUnauthorized)
+	}
+
+	return user.ID, nil
 }
 
 func (s *userService) ValidatePassword(password string) ValidationError {
@@ -185,8 +220,8 @@ func (s *userService) Verify(code, username, email, password string) (*model.Ses
 		return nil, err
 	}
 
-	session := model.NewSession(userID, false)
-	if err := s.sessionStore.Create(session); err != nil {
+	session := model.NewSession(userID)
+	if err := s.sessionStore.CreateSession(session); err != nil {
 		return nil, err
 	}
 

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rodrigo462003/FlickMeter/model"
 	"github.com/rodrigo462003/FlickMeter/service"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
@@ -52,17 +51,27 @@ func (h *userHandler) PostSignIn(c echo.Context) error {
 		return echo.ErrBadRequest.WithInternal(err)
 	}
 
-	session, err := h.service.SignIn(form.Email, form.Password, form.Remember)
-	if err == nil {
-		c.SetCookie(newCookie(session))
-		return c.NoContent(http.StatusOK)
+	userID, err := h.service.SignIn(form.Email, form.Password)
+	if err != nil {
+		if err, ok := err.(service.ValidationError); ok {
+			return c.String(statusCode(err), err.Message())
+		}
+		return err
 	}
 
-	if err, ok := err.(service.ValidationError); ok {
-		return c.String(statusCode(err), err.Message())
+	session, err := h.service.CreateSession(userID)
+	if err != nil {
+		return err
 	}
+	c.SetCookie(NewCookieSession(session))
 
-	return err
+	auth, err := h.service.CreateAuth(userID)
+	if err != nil {
+		return err
+	}
+	c.SetCookie(NewCookieAuth(auth))
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *userHandler) GetRegister(c echo.Context) error {
@@ -99,27 +108,10 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 		return err
 	}
 
-	c.SetCookie(newCookie(session))
+	c.SetCookie(NewCookieSession(session))
 	c.Response().Header().Set("HX-Redirect", "/")
 
 	return c.NoContent(http.StatusCreated)
-}
-
-func newCookie(session *model.Session) *http.Cookie {
-	c := &http.Cookie{
-		Name:     "session",
-		Value:    session.UUID.String(),
-		Path:     "/",
-		Secure:   false, //SET TO SECURE FOR HTTPS.
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	}
-	if session.Persist {
-		c.Name = "auth"
-		c.Expires = session.ExpiresAt
-	}
-
-	return c
 }
 
 func (h *userHandler) PostRegister(c echo.Context) error {
@@ -167,4 +159,69 @@ func (h *userHandler) PostPassword(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
+}
+
+func (h *userHandler) AuthMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Set("isAuth", false)
+			cookie, err := c.Request().Cookie("session")
+			if err == nil {
+				if user, err := h.service.GetUserFromSession(cookie.Value); err == nil {
+					c.Set("isAuth", true)
+					c.Set("user", user)
+					return next(c)
+				}
+			}
+
+			auth, err := c.Request().Cookie("auth")
+			if err != nil {
+				return next(c)
+			}
+
+			user, err := h.service.GetUserFromAuth(auth.Value)
+			if err != nil {
+				return next(c)
+			}
+
+			if session, err := h.service.CreateSession(user.ID); err == nil {
+				c.SetCookie(NewCookieSession(session))
+			}
+
+			c.Set("isAuth", true)
+			c.Set("user", user)
+			return next(c)
+		}
+	}
+}
+
+func (h *userHandler) AuthRequiredMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			session, err := c.Request().Cookie("session")
+			if err == nil {
+				if user, err := h.service.GetUserFromSession(session.Value); err != nil {
+					c.Set("user", user)
+					return next(c)
+				}
+			}
+
+			auth, err := c.Request().Cookie("auth")
+			if err != nil {
+				return echo.ErrUnauthorized.WithInternal(err)
+			}
+
+			user, err := h.service.GetUserFromAuth(auth.Value)
+			if err != nil {
+				return echo.ErrUnauthorized.WithInternal(err)
+			}
+
+			if session, err := h.service.CreateSession(user.ID); err == nil {
+				c.SetCookie(NewCookieSession(session))
+			}
+
+			c.Set("user", user)
+			return next(c)
+		}
+	}
 }
