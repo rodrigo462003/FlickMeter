@@ -8,9 +8,12 @@ templ SignIn() {
 		}
 		@form() {
 			@input("Email", "email", "email", "john@flickmeter.com", "email", true)
-			@input("Password", "password", "password", "", "current-password", true)
+            <div>
+			    @input("Password", "password", "password", "", "current-password", true)
+			    @messageDiv("signIn", "")
+            </div>
 			@checkbox("remember", "Remember me")
-			@button("submit", "submit", "Sign In", newHtmx("/user/signIn", "", "body","", "", true))
+			@button("submit", "submit", "Sign In", newHtmx("/user/signIn", "", "body", "#signInErr", "", true))
 		}
 	}
 }

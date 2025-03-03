@@ -14,8 +14,11 @@ templ modal() {
             return
         }
         if (event.detail.serverResponse.includes("usernameErr")) {
-            document.getElementById("codeContainer").style.display = 'none';
-            document.getElementById("registerContainer").style.display = '';
+            const codeC = document.getElementById("codeContainer")
+            if (codeC) {
+                document.getElementById("registerContainer").style.display = '';
+                document.getElementById("codeContainer").style.display = 'none';
+            }
         }
     }
 

@@ -18,8 +18,9 @@ func main() {
 		panic(err)
 	}
 
-	sessionStore := store.NewSessionStore(env["REDIS_ADDR"])
-	userStore := store.NewUserStore(db.New(env["CONN_STR"]))
+	db := db.New(env["CONN_STR"])
+	sessionStore := store.NewSessionStore(env["REDIS_ADDR"], db)
+	userStore := store.NewUserStore(db)
 
 	emailSender := email.NewMailSender(env["EMAIL_ADDR"], env["EMAIL_PW"], env["EMAIL_HOST"], env["EMAIL_PORT"])
 	userService := service.NewUserService(userStore, sessionStore, emailSender)

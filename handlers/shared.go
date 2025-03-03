@@ -27,6 +27,8 @@ func statusCode(err service.ValidationError) int {
 		return http.StatusConflict
 	case err.Is(service.ErrUnprocessable):
 		return http.StatusUnprocessableEntity
+	case err.Is(service.ErrUnauthorized):
+		return http.StatusUnauthorized
 	}
 	panic("This shouldn't happen, All ValidationError types should be covered by the previous cases.")
 }

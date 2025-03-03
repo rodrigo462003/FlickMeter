@@ -100,6 +100,10 @@ func NewUser(username, email, password string) *User {
 	return &User{Username: username, Email: email, Password: password}
 }
 
-func (u *User) MustHashPassword() {
-	u.Password = hashing.MustHashPassword([]byte(u.Password))
+func (u *User) HashPassword() {
+	u.Password = hashing.HashPassword([]byte(u.Password))
+}
+
+func (u *User) PasswordsMatch(password string) bool {
+	return hashing.PasswordsMatch(password, u.Password)
 }

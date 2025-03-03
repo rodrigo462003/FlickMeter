@@ -5,7 +5,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/rodrigo462003/FlickMeter/email"
 	"github.com/rodrigo462003/FlickMeter/model"
 	"github.com/rodrigo462003/FlickMeter/store"
@@ -16,7 +15,8 @@ type UserService interface {
 	ValidateEmail(email string) ValidationError
 	ValidateUsername(username string) error
 	Register(username, email, password string) error
-	Verify(code, username, email, password string) (uuid.UUID, error)
+	Verify(code, username, email, password string) (*model.Session, error)
+	SignIn(email, password string, remember bool) (*model.Session, error)
 }
 
 type userService struct {
@@ -27,6 +27,24 @@ type userService struct {
 
 func NewUserService(us store.UserStore, ss store.SessionStore, es email.EmailSender) *userService {
 	return &userService{us, es, ss}
+}
+
+func (s *userService) SignIn(email, password string, remember bool) (*model.Session, error) {
+	user, err := s.userStore.GetByEmail(email)
+	if err != nil {
+		return nil, NewValidationError("* Incorrect Email or Password.", ErrUnauthorized)
+	}
+
+	if !user.PasswordsMatch(password) {
+		return nil, NewValidationError("* Incorrect Email or Password.", ErrUnauthorized)
+	}
+
+	session := model.NewSession(user.ID, remember)
+	if err := s.sessionStore.Create(session); err != nil {
+		return nil, err
+	}
+
+	return session, nil
 }
 
 func (s *userService) ValidatePassword(password string) ValidationError {
@@ -157,22 +175,22 @@ func (s *userService) Register(username, email, password string) error {
 	return nil
 }
 
-func (s *userService) Verify(code, username, email, password string) (uuid uuid.UUID, err error) {
+func (s *userService) Verify(code, username, email, password string) (*model.Session, error) {
 	if err := s.isValidCode(email, code); err != nil {
-		return uuid, err
+		return nil, err
 	}
 
 	userID, err := s.createUser(username, email, password)
 	if err != nil {
-		return uuid, err
+		return nil, err
 	}
 
-	session := model.NewSession(userID)
+	session := model.NewSession(userID, false)
 	if err := s.sessionStore.Create(session); err != nil {
-		return uuid, err
+		return nil, err
 	}
 
-	return session.UUID, nil
+	return session, nil
 }
 
 func (s *userService) isValidCode(email, code string) error {
@@ -193,7 +211,7 @@ func (s *userService) isValidCode(email, code string) error {
 
 func (s *userService) createUser(username, email, password string) (uint, error) {
 	user := model.NewUser(username, email, password)
-	user.MustHashPassword()
+	user.HashPassword()
 
 	if err := s.userStore.Create(user); err != nil {
 		switch err {
