@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/rodrigo462003/FlickMeter/model"
 	"github.com/rodrigo462003/FlickMeter/service"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
@@ -15,6 +15,12 @@ type registerForm struct {
 	Username string `form:"username"`
 	Email    string `form:"email"`
 	Password string `form:"password"`
+}
+
+type signInForm struct {
+	Email    string `form:"email"`
+	Password string `form:"password"`
+	Remember bool   `form:"remember"`
 }
 
 type userHandler struct {
@@ -41,7 +47,22 @@ func (h *userHandler) GetSignIn(c echo.Context) error {
 }
 
 func (h *userHandler) PostSignIn(c echo.Context) error {
-	return Render(c, http.StatusOK, templates.BaseBody())
+	form := &signInForm{}
+	if err := c.Bind(form); err != nil {
+		return echo.ErrBadRequest.WithInternal(err)
+	}
+
+	session, err := h.service.SignIn(form.Email, form.Password, form.Remember)
+	if err == nil {
+		c.SetCookie(newCookie(session))
+		return c.NoContent(http.StatusOK)
+	}
+
+	if err, ok := err.(service.ValidationError); ok {
+		return c.String(statusCode(err), err.Message())
+	}
+
+	return err
 }
 
 func (h *userHandler) GetRegister(c echo.Context) error {
@@ -67,7 +88,7 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 		return echo.ErrBadRequest.WithInternal(err)
 	}
 
-	uuid, err := h.service.Verify(code, form.Username, form.Email, form.Password)
+	session, err := h.service.Verify(code, form.Username, form.Email, form.Password)
 	if err != nil {
 		switch e := err.(type) {
 		case service.ValidationErrors:
@@ -78,21 +99,27 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 		return err
 	}
 
-	c.SetCookie(newCookie(uuid))
+	c.SetCookie(newCookie(session))
 	c.Response().Header().Set("HX-Redirect", "/")
 
 	return c.NoContent(http.StatusCreated)
 }
 
-func newCookie(uuid uuid.UUID) *http.Cookie {
-	return &http.Cookie{
+func newCookie(session *model.Session) *http.Cookie {
+	c := &http.Cookie{
 		Name:     "session",
-		Value:    uuid.String(),
+		Value:    session.UUID.String(),
 		Path:     "/",
 		Secure:   false, //SET TO SECURE FOR HTTPS.
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	}
+	if session.Persist {
+		c.Name = "auth"
+		c.Expires = session.ExpiresAt
+	}
+
+	return c
 }
 
 func (h *userHandler) PostRegister(c echo.Context) error {
@@ -120,8 +147,8 @@ func (h *userHandler) PostUsername(c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 
-	if vErr, ok := err.(service.ValidationError); ok {
-		return c.String(statusCode(vErr), vErr.Message())
+	if err, ok := err.(service.ValidationError); ok {
+		return c.String(statusCode(err), err.Message())
 	}
 
 	return err

@@ -7,6 +7,7 @@ import (
 
 var ErrConflict = errors.New("Conflict")
 var ErrUnprocessable = errors.New("Invalid")
+var ErrUnauthorized = errors.New("Authorized")
 
 type ValidationError interface {
 	Is(target error) bool
@@ -50,8 +51,8 @@ func NewValidationErrors() *validationErrors {
 }
 
 func NewValidationErrorsSingle(field, message string, sentinel error) *validationErrors {
-	vErr := NewValidationError(message, sentinel)
-	return &validationErrors{map[string]ValidationError{field: vErr}}
+	err := NewValidationError(message, sentinel)
+	return &validationErrors{map[string]ValidationError{field: err}}
 }
 
 func (ve *validationErrors) add(field string, err ValidationError) {
