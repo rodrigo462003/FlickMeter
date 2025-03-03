@@ -6,6 +6,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
+	"github.com/rodrigo462003/FlickMeter/model"
 	"github.com/rodrigo462003/FlickMeter/service"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
@@ -54,6 +55,30 @@ func priorityStatusCode(err service.ValidationErrors) int {
 	return pCode
 }
 
+func NewCookieSession(session *model.Session) *http.Cookie {
+	return &http.Cookie{
+		Name:     "session",
+		Value:    session.UUID.String(),
+		Path:     "/",
+		Secure:   false, //SET TO SECURE FOR HTTPS.
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+}
+
+func NewCookieAuth(auth *model.Auth) *http.Cookie {
+	return &http.Cookie{
+		Name:     "auth",
+		Value:    auth.UUID.String(),
+		Path:     "/",
+		Secure:   false, //SET TO SECURE FOR HTTPS.
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+		Expires:  auth.ExpiresAt,
+	}
+}
+
 func GetHome(c echo.Context) error {
-	return Render(c, http.StatusOK, templates.Home(false))
+	isAuth := c.Get("isAuth").(bool)
+	return Render(c, http.StatusOK, templates.Home(isAuth))
 }

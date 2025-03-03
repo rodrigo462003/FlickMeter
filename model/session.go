@@ -7,31 +7,36 @@ import (
 	"gorm.io/gorm"
 )
 
-type Session struct {
+type Auth struct {
 	gorm.Model
-	UUID      uuid.UUID     `gorm:"not null;index;type:uuid;"`
-	UserID    uint          `gorm:"not null"`
-	ExpiresAt time.Time     `gorm:"not null"`
-	User      User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;"`
-	ExpiresIn time.Duration `gorm:"-"`
-	Persist   bool          `gorm:"-"`
+	UUID      uuid.UUID `gorm:"not null;index;type:uuid;"`
+	UserID    uint      `gorm:"not null"`
+	ExpiresAt time.Time `gorm:"not null"`
+	User      User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;"`
 }
 
-func NewSession(userID uint, persist bool) *Session {
+type Session struct {
+	UUID      uuid.UUID
+	UserID    uint
+	ExpiresIn time.Duration
+}
+
+func NewSession(userID uint) *Session {
 	const Day = time.Hour * 24
+
+	return &Session{
+		UUID:      uuid.New(),
+		UserID:    userID,
+		ExpiresIn: Day,
+	}
+}
+
+func NewAuth(userID uint) *Auth {
 	const Month = time.Hour * 24 * 30
 
-	s := &Session{
-		UUID:    uuid.New(),
-		UserID:  userID,
-		Persist: persist,
+	return &Auth{
+		UUID:      uuid.New(),
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(Month),
 	}
-
-	if persist {
-		s.ExpiresAt = time.Now().Add(Month)
-	} else {
-		s.ExpiresIn = Day
-	}
-
-	return s
 }

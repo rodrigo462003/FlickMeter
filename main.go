@@ -25,6 +25,7 @@ func main() {
 	emailSender := email.NewMailSender(env["EMAIL_ADDR"], env["EMAIL_PW"], env["EMAIL_HOST"], env["EMAIL_PORT"])
 	userService := service.NewUserService(userStore, sessionStore, emailSender)
 	userHandler := handlers.NewUserHandler(userService)
+	authMiddleware := userHandler.AuthMiddleware()
 
 	e := echo.New()
 	e.Debug = true
@@ -34,7 +35,7 @@ func main() {
 		middleware.RateLimiter(limiterStore))
 
 	e.Static("/public", "./public")
-	e.GET("/", handlers.GetHome)
+	e.GET("/", handlers.GetHome, authMiddleware)
 
 	userHandler.Register(e.Group("/user"))
 
