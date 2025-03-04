@@ -14,6 +14,8 @@ type SessionStore interface {
 	CreateAuth(auth *model.Auth) error
 	GetUserIDBySession(uuid string) (uint, error)
 	GetUserByAuth(uuid string) (*model.User, error)
+	DeleteSession(uuid string) error
+	DeleteAuth(uuid string) error
 }
 
 type sessionStore struct {
@@ -24,6 +26,14 @@ type sessionStore struct {
 func NewSessionStore(redisAddr string, db *gorm.DB) *sessionStore {
 	redis := redis.NewClient(&redis.Options{Addr: redisAddr})
 	return &sessionStore{redis, db}
+}
+
+func (store *sessionStore) DeleteSession(uuid string) error {
+	return store.redis.Del(context.TODO(), uuid).Err()
+}
+
+func (store *sessionStore) DeleteAuth(uuid string) error {
+	return store.db.Where("uuid = ?", uuid).Delete(&model.Auth{}).Error
 }
 
 func (store *sessionStore) CreateSession(s *model.Session) error {

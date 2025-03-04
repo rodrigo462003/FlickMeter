@@ -21,6 +21,8 @@ type UserService interface {
 	CreateAuth(userID uint) (*model.Auth, error)
 	GetUserFromAuth(uuid string) (*model.User, error)
 	GetUserFromSession(uuid string) (*model.User, error)
+	DeleteSession(uuid string) error
+	DeleteAuth(uuid string) error
 }
 
 type userService struct {
@@ -31,6 +33,16 @@ type userService struct {
 
 func NewUserService(us store.UserStore, ss store.SessionStore, es email.EmailSender) *userService {
 	return &userService{us, es, ss}
+}
+
+func (s *userService) DeleteSession(uuid string) error {
+	fmt.Println(uuid)
+	return s.sessionStore.DeleteSession(uuid)
+}
+
+func (s *userService) DeleteAuth(uuid string) error {
+	fmt.Println(uuid)
+	return s.sessionStore.DeleteAuth(uuid)
 }
 
 func (s *userService) CreateSession(userID uint) (*model.Session, error) {

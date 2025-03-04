@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -39,6 +40,25 @@ func (h *userHandler) Register(g *echo.Group) {
 	g.POST("/register/email", h.PostEmail)
 	g.POST("/register/password", h.PostPassword)
 	g.POST("/register/verify", h.PostVerify)
+	g.POST("/signOff", h.PostSignOff, h.AuthRequiredMiddleware())
+}
+
+func (h *userHandler) PostSignOff(c echo.Context) error {
+	fmt.Println("gg")
+	if auth, err := c.Cookie("auth"); err == nil {
+		if err = h.service.DeleteAuth(auth.Value); err != nil {
+			return err
+		}
+	}
+
+	if session, err := c.Cookie("session"); err == nil {
+		if err = h.service.DeleteSession(session.Value); err != nil {
+			return err
+		}
+	}
+
+	c.Response().Header().Set("HX-Redirect", "/")
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *userHandler) GetSignIn(c echo.Context) error {
@@ -71,6 +91,7 @@ func (h *userHandler) PostSignIn(c echo.Context) error {
 	}
 	c.SetCookie(NewCookieAuth(auth))
 
+	c.Response().Header().Set("HX-Redirect", "/")
 	return c.NoContent(http.StatusOK)
 }
 
@@ -110,7 +131,6 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 
 	c.SetCookie(NewCookieSession(session))
 	c.Response().Header().Set("HX-Redirect", "/")
-
 	return c.NoContent(http.StatusCreated)
 }
 
@@ -200,7 +220,7 @@ func (h *userHandler) AuthRequiredMiddleware() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			session, err := c.Request().Cookie("session")
 			if err == nil {
-				if user, err := h.service.GetUserFromSession(session.Value); err != nil {
+				if user, err := h.service.GetUserFromSession(session.Value); err == nil {
 					c.Set("user", user)
 					return next(c)
 				}
