@@ -1,0 +1,23 @@
+package templates
+
+import (
+"github.com/rodrigo462003/FlickMeter/model"
+)
+
+templ Movie(movie model.Movie, isAuth bool) {
+@Base()
+@BaseBody() {
+@navbar(isAuth)
+<div
+    class="flex h-[60%] font-mono transform -translate-x-1/2 -translate-y-1/2 absolute left-1/2 top-1/2 focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black">
+    alt={ movie.Title + "Backdrop" } />
+    <div class="flex p-4 flex-col gap-4">
+        <h1 class="font-extrabold text-6xl">{ movie.Title }</h1>
+        <div>
+        </div>
+        <p class="overview">
+        </p>
+    </div>
+</div>
+}
+}

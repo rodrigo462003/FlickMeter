@@ -30,12 +30,12 @@ templ navbar(isAuth bool) {
 }
 
 templ profileButton() {
-	<div class="relative inline-block">
+	<div class="flex relative">
 		<button
 			onclick="toggleDrop()"
 			id="profileButton"
 			type="button"
-			class="transition-transform active:scale-90
+			class="top-1/2 transition-transform active:scale-90
         focus:outline-none hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 rounded-full text-indigo-700"
 		>
 			<svg
@@ -59,19 +59,22 @@ templ profileButton() {
     const button = document.getElementById('profileButton');
 
     function toggleDrop() {
-        dropDown.classList.toggle('hidden');
+        dropDown.classList.toggle('opacity-0');
     }
 
     document.addEventListener('click', (event) => {
         if (!dropDown.contains(event.target) && !button.contains(event.target)) {
-            dropDown.classList.add('hidden');
+            dropDown.classList.add('opacity-0');
         }
     });
 </script>
 }
 
 templ dropDown() {
-	<div id="profileDrop" class="hidden absolute right-0 mt-2 bg-white shadow-md rounded-lg p-2">
+	<div
+		id="profileDrop"
+		class="transition-all duration-300 ease-in-out opacity-0 absolute right-8 top-6 mt-2 bg-white shadow-md rounded-lg p-2"
+	>
 		@dropA("Profile", "")
 		@dropA("Settings", "")
 		@dropA("Sign out", "/user/signOff")
