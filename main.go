@@ -19,13 +19,15 @@ func main() {
 	}
 
 	db := db.New(env["CONN_STR"])
-	sessionStore := store.NewSessionStore(env["REDIS_ADDR"], db)
-	userStore := store.NewUserStore(db)
 
 	emailSender := email.NewMailSender(env["EMAIL_ADDR"], env["EMAIL_PW"], env["EMAIL_HOST"], env["EMAIL_PORT"])
+	sessionStore := store.NewSessionStore(env["REDIS_ADDR"], db)
+	userStore := store.NewUserStore(db)
 	userService := service.NewUserService(userStore, sessionStore, emailSender)
 	userHandler := handlers.NewUserHandler(userService)
-	authMiddleware := userHandler.AuthMiddleware()
+
+	movieService := service.NewMovieService(env["API_KEY"])
+	movieHandler := handlers.NewMovieHandler(movieService)
 
 	e := echo.New()
 	e.Debug = true
@@ -35,9 +37,11 @@ func main() {
 		middleware.RateLimiter(limiterStore))
 
 	e.Static("/public", "./public")
-	e.GET("/", handlers.GetHome, authMiddleware)
+	e.GET("/", handlers.GetHome, userHandler.AuthMiddleware())
 
 	userHandler.Register(e.Group("/user"))
+
+	movieHandler.Register(e.Group("/movie"))
 
 	e.Logger.Fatal(e.Start(env["ADDR"]))
 }
