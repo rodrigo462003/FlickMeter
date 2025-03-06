@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type Genre struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
@@ -18,10 +20,23 @@ type SpokenLanguage struct {
 	Name        string `json:"name"`
 }
 
+type Video struct {
+	ISO639_1    string    `json:"iso_639_1"`
+	ISO3166_1   string    `json:"iso_3166_1"`
+	Name        string    `json:"name"`
+	Key         string    `json:"key"`
+	Site        string    `json:"site"`
+	Size        int       `json:"size"`
+	Type        string    `json:"type"`
+	Official    bool      `json:"official"`
+	PublishedAt time.Time `json:"published_at"`
+	ID          string    `json:"id"`
+}
+
 type Movie struct {
 	Adult               bool                `json:"adult"`
 	BackdropPath        string              `json:"backdrop_path"`
-	BelongsToCollection any                 `json:"belongs_to_collection"` // Can be null, so we use interface{}
+	BelongsToCollection any                 `json:"belongs_to_collection"`
 	Budget              int                 `json:"budget"`
 	Genres              []Genre             `json:"genres"`
 	Homepage            string              `json:"homepage"`
@@ -34,10 +49,10 @@ type Movie struct {
 	Popularity          float64             `json:"popularity"`
 	PosterPath          string              `json:"poster_path"`
 	ProductionCompanies []ProductionCompany `json:"production_companies"`
-	ProductionCountries []map[string]string `json:"production_countries"` // A map of country code and name
+	ProductionCountries []map[string]string `json:"production_countries"`
 	ReleaseDate         string              `json:"release_date"`
 	Revenue             int                 `json:"revenue"`
-	Runtime             int                 `json:"runtime"` // Movie duration in minutes
+	Runtime             int                 `json:"runtime"`
 	SpokenLanguages     []SpokenLanguage    `json:"spoken_languages"`
 	Status              string              `json:"status"`
 	Tagline             string              `json:"tagline"`
@@ -45,4 +60,5 @@ type Movie struct {
 	Video               bool                `json:"video"`
 	VoteAverage         float64             `json:"vote_average"`
 	VoteCount           int                 `json:"vote_count"`
+	Videos              []Video             `json:"videos"`
 }
