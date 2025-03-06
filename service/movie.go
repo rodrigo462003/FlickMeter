@@ -19,5 +19,16 @@ func NewMovieService(apiToken string) *movieService {
 }
 
 func (s *movieService) GetMovie(movieID string) (movie *model.Movie, err error) {
-	return s.MovieGetter.GetMovie(movieID)
+	movie, err = s.MovieGetter.GetMovie(movieID)
+	if err != nil {
+		return nil, err
+	}
+
+	videos, err := s.MovieGetter.GetVideos(movieID)
+	if err != nil {
+		return nil, err
+	}
+	movie.Videos = videos
+
+	return movie, nil
 }

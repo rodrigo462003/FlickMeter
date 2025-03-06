@@ -2,8 +2,8 @@ package templates
 
 import (
 "github.com/rodrigo462003/FlickMeter/model"
-"strings"
 "strconv"
+"strings"
 )
 
 templ Movie(movie model.Movie, isAuth bool) {
@@ -11,55 +11,108 @@ templ Movie(movie model.Movie, isAuth bool) {
 @BaseBody() {
 @navbar(isAuth)
 <div
-    class="flex h-[60%] font-mono transform -translate-x-1/2 -translate-y-1/2 absolute left-1/2 top-1/2 focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black">
-    <img class="backdrop" src={ "https://image.tmdb.org/t/p/original/" + movie.PosterPath }
-    alt={ movie.Title + "Backdrop" } />
+    class="flex w-2/3 flex-row h-[60%] font-mono transform -translate-x-1/2 -translate-y-1/2 absolute left-1/2 top-1/2 focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black">
+    @Frame(movie)
     <div class="flex p-4 flex-col gap-4">
         <h1 class="font-extrabold text-6xl">{ movie.Title }</h1>
         <div class="flex gap-20">
             <p>{ strings.Split(movie.ReleaseDate, "-")[0] }</p>
-            <p>{ strconv.Itoa(movie.Runtime) + "m"}</p>
+            <p>{ strconv.Itoa(movie.Runtime) + "m" }</p>
             for i, genre := range movie.Genres {
-                if i == 0 {
-                    { genre.Name }
-                } else {
-                    { " / " + genre.Name }
-                }
+            if i == 0 {
+            { genre.Name }
+            } else {
+            { " / " + genre.Name }
+            }
             }
         </div>
-        <div class="flex gap-2">
-            {{ fullStars := int(movie.VoteAverage) }}
-            {{ halfStar := 0
-                if movie.VoteAverage - float64(int(movie.VoteAverage)) >= 0.5 {halfStar = 1}
-            }}
-            for range fullStars {
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                fill="gold"/>
-              </svg>
-            }
-            for range halfStar{
-               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="gold"/>
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="gray" clip-path="url(#clip-half)"/>
-                <defs>
-                  <clipPath id="clip-half">
-                    <rect x="50%" y="0" width="50%" height="100%"/>
-                  </clipPath>
-                </defs>
-              </svg>
-              }
-            for range 10 - fullStars - halfStar{
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                fill="grey"/>
-              </svg>
-            }
-        </div>
+        @Ratings(movie)
         <p class="overview">
             { movie.Overview }
         </p>
     </div>
 </div>
 }
+}
+
+templ Ratings(movie model.Movie) {
+<div class="flex gap-2">
+    {{ fullStars := int(movie.VoteAverage) }}
+    {{halfStar := 0
+    if movie.VoteAverage-float64(int(movie.VoteAverage)) >= 0.5 {
+    halfStar = 1
+    }
+    }}
+    for range fullStars {
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="gold">
+        </path>
+    </svg>
+    }
+    for range halfStar {
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="gold">
+        </path>
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="gray"
+            clip-path="url(#clip-half)"></path>
+        <defs>
+            <clipPath id="clip-half">
+                <rect x="50%" y="0" width="50%" height="100%"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+    }
+    for range 10 - fullStars - halfStar {
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="grey">
+        </path>
+    </svg>
+    }
+</div>
+}
+
+templ Frame(movie model.Movie) {
+<div class="flex min-w-fit flex-row">
+    <img class="h-full w-auto object-cover" id="poster" src={ "https://image.tmdb.org/t/p/original/" + movie.PosterPath
+        } alt={ movie.Title + "poster" } />
+    <iframe class="h-full w-auto hidden" id="videoIframe" title="YouTube video player" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+<script>
+    let i = -1
+    const iframe = document.getElementById("videoIframe");
+    const poster = document.getElementById("poster");
+    function changeVideo(movie, next) {
+        console.log(iframe)
+        let videos = movie.videos
+        if (next) {
+            if (i == -1) {
+                let width = poster.offsetWidth;
+                iframe.classList.toggle('hidden')
+                poster.classList.toggle('hidden')
+                iframe.style.width = width + 'px';
+            }
+            if (i < videos.length - 1) {
+                i++;
+                iframe.src = "https://www.youtube.com/embed/" + videos[i].key + "?autoplay=1";
+                return
+            }
+        } else if (i >= 0) {
+            i--;
+            if (i === -1) {
+                iframe.classList.toggle('hidden')
+                poster.classList.toggle('hidden')
+                iframe.src = ""
+                return
+            }
+            iframe.src = "https://www.youtube.com/embed/" + videos[i].key + "?autoplay=1";
+            return
+        }
+    }
+</script>
+<div class="absolute">
+    <button onclick={ templ.JSFuncCall("changeVideo", movie, false) }>Back</button>
+    <button onclick={ templ.JSFuncCall("changeVideo", movie, true) }>Forward</button>
+</div>
 }
