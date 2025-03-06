@@ -14,15 +14,15 @@ type MovieGetter interface {
 }
 
 type movieGet struct {
-	Key string
+	Auth string
 }
 
-func NewMovieGet(key string) *movieGet {
-	return &movieGet{key}
+func NewMovieGet(token string) *movieGet {
+	return &movieGet{fmt.Sprintf("Bearer %s", token)}
 }
 
 func (m *movieGet) GetMovie(id string) (*model.Movie, error) {
-	url := fmt.Sprintf("http://www.omdbapi.com/?i=%s&plot=full&apikey=%s", id, m.Key)
+	url := fmt.Sprintf("https://api.themoviedb.org/3/movie/%s?", id)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -30,6 +30,7 @@ func (m *movieGet) GetMovie(id string) (*model.Movie, error) {
 	}
 
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", m.Auth)
 
 	client := &http.Client{}
 	res, err := client.Do(req)
