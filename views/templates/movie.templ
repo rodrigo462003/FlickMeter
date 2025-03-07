@@ -9,14 +9,14 @@ import (
 templ Movie(movie model.Movie, isAuth bool) {
 @Base()
 
-<body class="h-screen w-screen overflow-hidden" style={"backdrop-filter: brightness(0.5);background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/" +
-    movie.BackdropPath + ");" }>
+<body class="h-screen w-screen overflow-hidden"
+    style={ "backdrop-filter: brightness(0.5);background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/" + movie.BackdropPath + ");" }>
     @navbar(isAuth)
     <div
-        class="flex w-2/3 bg-white flex-row h-[60%] font-mono transform -translate-x-1/2 -translate-y-1/2 absolute left-1/2 top-1/2 focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black">
+        class="relative flex w-2/3 bg-white flex-row h-[60%] font-mono transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black">
         @Frame(movie)
         <div class="flex p-4 flex-col gap-4">
-            <h1 class="font-extrabold text-6xl">{ movie.Title }</h1>
+            <h1 class="text-indigo-700 font-extrabold font-sans text-7xl">{ movie.Title }</h1>
             <div class="flex gap-20">
                 <p>{ strings.Split(movie.ReleaseDate, "-")[0] }</p>
                 <p>{ strconv.Itoa(movie.Runtime) + "m" }</p>
@@ -75,34 +75,49 @@ templ Ratings(movie model.Movie) {
 
 templ Frame(movie model.Movie) {
 <div class="flex min-w-fit flex-row">
-    <img class="h-full w-auto object-cover" id="poster" src={ "https://image.tmdb.org/t/p/original/" + movie.PosterPath
-        } alt={ movie.Title + "poster" } />
-    <iframe class="h-full w-auto hidden" id="videoIframe" title="YouTube video player" frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <div class="relative">
+        <img class="h-full w-auto object-cover" id="poster" src={ "https://image.tmdb.org/t/p/original/" +
+            movie.PosterPath } alt={ movie.Title + "poster" } />
+        <iframe class="h-full w-auto hidden" id="videoIframe" title="YouTube video player" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <button id="prev" class="hidden font-bold text-white py-2 pr-2 rounded-r-lg hover:bg-black hover:bg-opacity-80 text-4xl absolute top-[45%]" onclick={ templ.JSFuncCall("changeVideo", movie, false)
+            }>❮</button>
+        <button id="next" class="font-bold text-white py-2 pl-2 rounded-l-lg hover:bg-black hover:bg-opacity-80 text-4xl absolute right-0 top-[45%]" onclick={ templ.JSFuncCall("changeVideo", movie, true)
+            }>❯</button>
+    </div>
 </div>
 <script>
     let i = -1
     const iframe = document.getElementById("videoIframe");
     const poster = document.getElementById("poster");
+    const prev = document.getElementById("prev");
+    const nextB = document.getElementById("next");
     function changeVideo(movie, next) {
-        console.log(iframe)
         let videos = movie.videos
         if (next) {
-            if (i == -1) {
+            if (i === -1) {
                 let width = poster.offsetWidth;
                 iframe.classList.toggle('hidden')
                 poster.classList.toggle('hidden')
                 iframe.style.width = width + 'px';
+                prev.classList.toggle('hidden')
             }
             if (i < videos.length - 1) {
                 i++;
+                if (i === videos.length - 1){
+                    nextB.classList.toggle('hidden')
+                }
                 iframe.src = "https://www.youtube.com/embed/" + videos[i].key + "?autoplay=1";
                 return
             }
         } else if (i >= 0) {
             i--;
+            if (i === videos.length - 2) {
+                nextB.classList.toggle('hidden')
+            }
             if (i === -1) {
+                prev.classList.toggle('hidden')
                 iframe.classList.toggle('hidden')
                 poster.classList.toggle('hidden')
                 iframe.src = ""
@@ -113,8 +128,4 @@ templ Frame(movie model.Movie) {
         }
     }
 </script>
-<div class="absolute">
-    <button onclick={ templ.JSFuncCall("changeVideo", movie, false) }>Back</button>
-    <button onclick={ templ.JSFuncCall("changeVideo", movie, true) }>Forward</button>
-</div>
 }

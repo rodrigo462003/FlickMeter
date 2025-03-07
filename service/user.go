@@ -179,10 +179,7 @@ func (s *userService) createVerificationCode(email string) (*model.VerificationC
 		}
 	}
 
-	code, err := model.NewVerificationCode(email)
-	if err != nil {
-		return nil, err
-	}
+	code := model.NewVerificationCode(email)
 
 	if err := s.userStore.CreateVCode(code); err != nil {
 		return nil, err
