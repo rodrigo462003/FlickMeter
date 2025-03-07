@@ -44,10 +44,9 @@ func Movie(movie model.Movie, isAuth bool) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("backdrop-filter: brightness(0.5);background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/" +
-			movie.BackdropPath + ");")
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("backdrop-filter: brightness(0.5);background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/" + movie.BackdropPath + ");")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 13, Col: 29}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 13, Col: 156}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -61,7 +60,7 @@ func Movie(movie model.Movie, isAuth bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"flex w-2/3 bg-white flex-row h-[60%] font-mono transform -translate-x-1/2 -translate-y-1/2 absolute left-1/2 top-1/2 focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"relative flex w-2/3 bg-white flex-row h-[60%] font-mono transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -69,14 +68,14 @@ func Movie(movie model.Movie, isAuth bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex p-4 flex-col gap-4\"><h1 class=\"font-extrabold text-6xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex p-4 flex-col gap-4\"><h1 class=\"text-indigo-700 font-extrabold font-sans text-7xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(movie.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 19, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 19, Col: 87}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -241,14 +240,15 @@ func Frame(movie model.Movie) templ.Component {
 			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"flex min-w-fit flex-row\"><img class=\"h-full w-auto object-cover\" id=\"poster\" src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"flex min-w-fit flex-row\"><div class=\"relative\"><img class=\"h-full w-auto object-cover\" id=\"poster\" src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("https://image.tmdb.org/t/p/original/" + movie.PosterPath)
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("https://image.tmdb.org/t/p/original/" +
+			movie.PosterPath)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 78, Col: 119}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 80, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -261,13 +261,13 @@ func Frame(movie model.Movie) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(movie.Title + "poster")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 79, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 80, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"> <iframe class=\"h-full w-auto hidden\" id=\"videoIframe\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe></div><script>\n    let i = -1\n    const iframe = document.getElementById(\"videoIframe\");\n    const poster = document.getElementById(\"poster\");\n    function changeVideo(movie, next) {\n        console.log(iframe)\n        let videos = movie.videos\n        if (next) {\n            if (i == -1) {\n                let width = poster.offsetWidth;\n                iframe.classList.toggle('hidden')\n                poster.classList.toggle('hidden')\n                iframe.style.width = width + 'px';\n            }\n            if (i < videos.length - 1) {\n                i++;\n                iframe.src = \"https://www.youtube.com/embed/\" + videos[i].key + \"?autoplay=1\";\n                return\n            }\n        } else if (i >= 0) {\n            i--;\n            if (i === -1) {\n                iframe.classList.toggle('hidden')\n                poster.classList.toggle('hidden')\n                iframe.src = \"\"\n                return\n            }\n            iframe.src = \"https://www.youtube.com/embed/\" + videos[i].key + \"?autoplay=1\";\n            return\n        }\n    }\n</script><div class=\"absolute\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"> <iframe class=\"h-full w-auto hidden\" id=\"videoIframe\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -275,7 +275,7 @@ func Frame(movie model.Movie) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button onclick=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button id=\"prev\" class=\"hidden font-bold text-white py-2 pr-2 rounded-r-lg hover:bg-black hover:bg-opacity-80 text-4xl absolute top-[45%]\" onclick=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -284,7 +284,7 @@ func Frame(movie model.Movie) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\">Back</button> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\">❮</button> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -292,7 +292,7 @@ func Frame(movie model.Movie) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button onclick=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button id=\"next\" class=\"font-bold text-white py-2 pl-2 rounded-l-lg hover:bg-black hover:bg-opacity-80 text-4xl absolute right-0 top-[45%]\" onclick=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -301,7 +301,7 @@ func Frame(movie model.Movie) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\">Forward</button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\">❯</button></div></div><script>\n    let i = -1\n    const iframe = document.getElementById(\"videoIframe\");\n    const poster = document.getElementById(\"poster\");\n    const prev = document.getElementById(\"prev\");\n    const nextB = document.getElementById(\"next\");\n    function changeVideo(movie, next) {\n        let videos = movie.videos\n        if (next) {\n            if (i === -1) {\n                let width = poster.offsetWidth;\n                iframe.classList.toggle('hidden')\n                poster.classList.toggle('hidden')\n                iframe.style.width = width + 'px';\n                prev.classList.toggle('hidden')\n            }\n            if (i < videos.length - 1) {\n                i++;\n                if (i === videos.length - 1){\n                    nextB.classList.toggle('hidden')\n                }\n                iframe.src = \"https://www.youtube.com/embed/\" + videos[i].key + \"?autoplay=1\";\n                return\n            }\n        } else if (i >= 0) {\n            i--;\n            if (i === videos.length - 2) {\n                nextB.classList.toggle('hidden')\n            }\n            if (i === -1) {\n                prev.classList.toggle('hidden')\n                iframe.classList.toggle('hidden')\n                poster.classList.toggle('hidden')\n                iframe.src = \"\"\n                return\n            }\n            iframe.src = \"https://www.youtube.com/embed/\" + videos[i].key + \"?autoplay=1\";\n            return\n        }\n    }\n</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
