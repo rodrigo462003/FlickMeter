@@ -29,7 +29,7 @@ func navbar(isAuth bool) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<nav id=\"nav\" class=\"w-full fixed flex items-center text-xl font-mono font-extrabold space-x-6 p-4 justify-end\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<nav id=\"nav\" class=\"w-full z-10 fixed flex items-center text-xl font-mono font-extrabold space-x-6 p-2 justify-end\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -52,7 +52,7 @@ func navbar(isAuth bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</nav><script>\n    const navbar = document.getElementById('nav');\n    let isTransparent = true\n    window.addEventListener('scroll', function () {\n        if (!navbar) return;\n        const scrollValue = window.scrollY;\n        if (scrollValue > 0 && isTransparent) {\n            isTransparent = false\n            navbar.style.backgroundPosition = '0% -100%'\n            return\n        }\n        if (scrollValue === 0 && !isTransparent) {\n            navbar.style.backgroundPosition = '0% 0%';\n            isTransparent = true\n        }\n    }\n    );\n</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</nav><script>\n    const navbar = document.getElementById('nav');\n    navbar.style.backgroundPosition = '0% -100%'\n    let isTransparent = true\n    window.addEventListener('scroll', function () {\n        if (!navbar) return;\n        const scrollValue = window.scrollY;\n        if (scrollValue > 0 && isTransparent) {\n            isTransparent = false\n            navbar.style.backgroundPosition = '0% -100%'\n            return\n        }\n        if (scrollValue === 0 && !isTransparent) {\n            navbar.style.backgroundPosition = '0% 0%';\n            isTransparent = true\n        }\n    }\n    );\n</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -163,20 +163,33 @@ func dropA(content, route string) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<button type=\"button\" class=\"text-left w-full block transition-transform active:scale-90 focus:outline-none\n    hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-md text-indigo-700\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<button type=\"button\" hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(content)
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(route)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/navbar.templ`, Line: 90, Col: 11}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/navbar.templ`, Line: 73, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"text-left w-full block transition-transform active:scale-90 focus:outline-none\n    hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-md text-indigo-700\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(content)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/navbar.templ`, Line: 75, Col: 13}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
