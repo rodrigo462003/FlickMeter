@@ -1,16 +1,17 @@
 package templates
 
 templ navbar(isAuth bool) {
-	<nav id="nav" class="w-full fixed flex items-center text-xl font-mono font-extrabold space-x-6 p-4 justify-end">
-		if !isAuth {
-			@button("", "button", "Sign In", newHtmx("/user/signIn", "", "#modal", "", "", false))
-			@anchorButton("button", "Register", newHtmx("/user/register", "", "#modal", "", "", false))
-		} else {
-			@profileButton()
-		}
-	</nav>
-	<script>
+<nav id="nav" class="w-full z-10 fixed flex items-center text-xl font-mono font-extrabold space-x-6 p-2 justify-end">
+    if !isAuth {
+    @button("", "button", "Sign In", newHtmx("/user/signIn", "", "#modal", "", "", false))
+    @anchorButton("button", "Register", newHtmx("/user/register", "", "#modal", "", "", false))
+    } else {
+    @profileButton()
+    }
+</nav>
+<script>
     const navbar = document.getElementById('nav');
+    navbar.style.backgroundPosition = '0% -100%'
     let isTransparent = true
     window.addEventListener('scroll', function () {
         if (!navbar) return;
@@ -30,31 +31,20 @@ templ navbar(isAuth bool) {
 }
 
 templ profileButton() {
-	<div class="flex relative">
-		<button
-			onclick="toggleDrop()"
-			id="profileButton"
-			type="button"
-			class="top-1/2 transition-transform active:scale-90
-        focus:outline-none hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 rounded-full text-indigo-700"
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				height="30"
-				fill="currentColor"
-				class="bi bi-person-circle"
-				viewBox="0 0 16 16"
-			>
-				<path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
-				<path
-					fill-rule="evenodd"
-					d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"
-				></path>
-			</svg>
-		</button>
-		@dropDown()
-	</div>
-	<script>
+<div class="flex relative">
+    <button onclick="toggleDrop()" id="profileButton" type="button" class="top-1/2 transition-transform active:scale-90
+        focus:outline-none hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 rounded-full text-indigo-700">
+        <svg xmlns="http://www.w3.org/2000/svg" height="30" fill="currentColor" class="bi bi-person-circle"
+            viewBox="0 0 16 16">
+            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
+            <path fill-rule="evenodd"
+                d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1">
+            </path>
+        </svg>
+    </button>
+    @dropDown()
+</div>
+<script>
     const dropDown = document.getElementById('profileDrop');
     const button = document.getElementById('profileButton');
 
@@ -71,22 +61,17 @@ templ profileButton() {
 }
 
 templ dropDown() {
-	<div
-		id="profileDrop"
-		class="transition-all duration-300 ease-in-out opacity-0 absolute right-8 top-6 mt-2 bg-white shadow-md rounded-lg p-2"
-	>
-		@dropA("Profile", "")
-		@dropA("Settings", "")
-		@dropA("Sign out", "/user/signOff")
-	</div>
+<div id="profileDrop"
+    class="transition-all duration-300 ease-in-out opacity-0 absolute right-8 top-6 mt-2 bg-white shadow-md rounded-lg p-2">
+    @dropA("Profile", "")
+    @dropA("Settings", "")
+    @dropA("Sign out", "/user/signOff")
+</div>
 }
 
 templ dropA(content, route string) {
-	<button
-		type="button"
-		class="text-left w-full block transition-transform active:scale-90 focus:outline-none
-    hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-md text-indigo-700"
-	>
-		{ content }
-	</button>
+<button type="button" hx-post={ route } class="text-left w-full block transition-transform active:scale-90 focus:outline-none
+    hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-md text-indigo-700">
+    { content }
+</button>
 }

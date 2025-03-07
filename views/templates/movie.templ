@@ -8,31 +8,33 @@ import (
 
 templ Movie(movie model.Movie, isAuth bool) {
 @Base()
-@BaseBody() {
-@navbar(isAuth)
-<div
-    class="flex w-2/3 flex-row h-[60%] font-mono transform -translate-x-1/2 -translate-y-1/2 absolute left-1/2 top-1/2 focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black">
-    @Frame(movie)
-    <div class="flex p-4 flex-col gap-4">
-        <h1 class="font-extrabold text-6xl">{ movie.Title }</h1>
-        <div class="flex gap-20">
-            <p>{ strings.Split(movie.ReleaseDate, "-")[0] }</p>
-            <p>{ strconv.Itoa(movie.Runtime) + "m" }</p>
-            for i, genre := range movie.Genres {
-            if i == 0 {
-            { genre.Name }
-            } else {
-            { " / " + genre.Name }
-            }
-            }
+
+<body class="h-screen w-screen overflow-hidden" style={"backdrop-filter: brightness(0.5);background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/" +
+    movie.BackdropPath + ");" }>
+    @navbar(isAuth)
+    <div
+        class="flex w-2/3 bg-white flex-row h-[60%] font-mono transform -translate-x-1/2 -translate-y-1/2 absolute left-1/2 top-1/2 focus:outline-none overflow-hidden rounded-lg shadow-md shadow-black">
+        @Frame(movie)
+        <div class="flex p-4 flex-col gap-4">
+            <h1 class="font-extrabold text-6xl">{ movie.Title }</h1>
+            <div class="flex gap-20">
+                <p>{ strings.Split(movie.ReleaseDate, "-")[0] }</p>
+                <p>{ strconv.Itoa(movie.Runtime) + "m" }</p>
+                for i, genre := range movie.Genres {
+                if i == 0 {
+                { genre.Name }
+                } else {
+                { " / " + genre.Name }
+                }
+                }
+            </div>
+            @Ratings(movie)
+            <p class="overview">
+                { movie.Overview }
+            </p>
         </div>
-        @Ratings(movie)
-        <p class="overview">
-            { movie.Overview }
-        </p>
     </div>
-</div>
-}
+</body>
 }
 
 templ Ratings(movie model.Movie) {
