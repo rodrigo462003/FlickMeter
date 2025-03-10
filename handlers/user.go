@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -44,7 +43,6 @@ func (h *userHandler) Register(g *echo.Group) {
 }
 
 func (h *userHandler) PostSignOff(c echo.Context) error {
-	fmt.Println("gg")
 	if auth, err := c.Cookie("auth"); err == nil {
 		if err = h.service.DeleteAuth(auth.Value); err != nil {
 			return err
