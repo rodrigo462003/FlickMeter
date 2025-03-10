@@ -9,8 +9,7 @@ psgrs:
 
 redis:
 	@echo "Starting Redis server..."
-	sudo systemctl start redis-server.service
-	redis-server --daemonize yes
+	sudo systemctl start redis.service
 
 live/templ:
 	templ generate --watch --proxy="http://localhost:8080" --open-browser=false -v

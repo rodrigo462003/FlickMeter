@@ -36,12 +36,10 @@ func NewUserService(us store.UserStore, ss store.SessionStore, es email.EmailSen
 }
 
 func (s *userService) DeleteSession(uuid string) error {
-	fmt.Println(uuid)
 	return s.sessionStore.DeleteSession(uuid)
 }
 
 func (s *userService) DeleteAuth(uuid string) error {
-	fmt.Println(uuid)
 	return s.sessionStore.DeleteAuth(uuid)
 }
 
