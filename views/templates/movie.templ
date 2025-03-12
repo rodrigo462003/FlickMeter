@@ -81,10 +81,12 @@ templ Frame(movie model.Movie) {
         <iframe class="h-full w-auto hidden" id="videoIframe" title="YouTube video player" frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-        <button id="prev" class="hidden font-bold text-white py-2 pr-2 rounded-r-lg hover:bg-black hover:bg-opacity-80 text-4xl absolute top-[45%]" onclick={ templ.JSFuncCall("changeVideo", movie, false)
-            }>❮</button>
-        <button id="next" class="font-bold text-white py-2 pl-2 rounded-l-lg hover:bg-black hover:bg-opacity-80 text-4xl absolute right-0 top-[45%]" onclick={ templ.JSFuncCall("changeVideo", movie, true)
-            }>❯</button>
+        <button id="prev"
+            class="hidden font-bold text-white pt-2 pb-1 pr-1 rounded-r-lg hover:bg-black hover:bg-opacity-80 w-9 text-4xl absolute top-[45%]"
+            onclick={ templ.JSFuncCall("prevVideo", movie.Videos) }>❮</button>
+        <button id="next"
+            class="leading-tight text-white font-bold pt-2 pb-1 pl-1 rounded-l-lg hover:bg-black hover:bg-opacity-80 w-9 text-4xl absolute right-0 top-[45%]"
+            onclick={ templ.JSFuncCall("nextVideo", movie.Videos) }>❯</button>
     </div>
 </div>
 <script>
@@ -92,29 +94,12 @@ templ Frame(movie model.Movie) {
     const iframe = document.getElementById("videoIframe");
     const poster = document.getElementById("poster");
     const prev = document.getElementById("prev");
-    const nextB = document.getElementById("next");
-    function changeVideo(movie, next) {
-        let videos = movie.videos
-        if (next) {
-            if (i === -1) {
-                let width = poster.offsetWidth;
-                iframe.classList.toggle('hidden')
-                poster.classList.toggle('hidden')
-                iframe.style.width = width + 'px';
-                prev.classList.toggle('hidden')
-            }
-            if (i < videos.length - 1) {
-                i++;
-                if (i === videos.length - 1){
-                    nextB.classList.toggle('hidden')
-                }
-                iframe.src = "https://www.youtube.com/embed/" + videos[i].key + "?autoplay=1";
-                return
-            }
-        } else if (i >= 0) {
+    const next = document.getElementById("next");
+    function prevVideo(videos) {
+        if (i >= 0) {
             i--;
             if (i === videos.length - 2) {
-                nextB.classList.toggle('hidden')
+                next.classList.toggle('hidden')
             }
             if (i === -1) {
                 prev.classList.toggle('hidden')
@@ -122,6 +107,23 @@ templ Frame(movie model.Movie) {
                 poster.classList.toggle('hidden')
                 iframe.src = ""
                 return
+            }
+            iframe.src = "https://www.youtube.com/embed/" + videos[i].key + "?autoplay=1";
+            return
+        }
+    }
+    function nextVideo(videos) {
+        if (i === -1) {
+            let width = poster.offsetWidth;
+            iframe.classList.toggle('hidden')
+            poster.classList.toggle('hidden')
+            iframe.style.width = width + 'px';
+            prev.classList.toggle('hidden')
+        }
+        if (i < videos.length - 1) {
+            i++;
+            if (i === videos.length - 1) {
+                next.classList.toggle('hidden')
             }
             iframe.src = "https://www.youtube.com/embed/" + videos[i].key + "?autoplay=1";
             return

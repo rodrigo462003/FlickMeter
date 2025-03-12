@@ -271,15 +271,15 @@ func Frame(movie model.Movie) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("changeVideo", movie, false))
+		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("prevVideo", movie.Videos))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button id=\"prev\" class=\"hidden font-bold text-white py-2 pr-2 rounded-r-lg hover:bg-black hover:bg-opacity-80 text-4xl absolute top-[45%]\" onclick=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button id=\"prev\" class=\"hidden font-bold text-white pt-2 pb-1 pr-1 rounded-r-lg hover:bg-black hover:bg-opacity-80 w-9 text-4xl absolute top-[45%]\" onclick=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var13 templ.ComponentScript = templ.JSFuncCall("changeVideo", movie, false)
+		var templ_7745c5c3_Var13 templ.ComponentScript = templ.JSFuncCall("prevVideo", movie.Videos)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13.Call)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -288,20 +288,20 @@ func Frame(movie model.Movie) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("changeVideo", movie, true))
+		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("nextVideo", movie.Videos))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button id=\"next\" class=\"font-bold text-white py-2 pl-2 rounded-l-lg hover:bg-black hover:bg-opacity-80 text-4xl absolute right-0 top-[45%]\" onclick=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button id=\"next\" class=\"leading-tight text-white font-bold pt-2 pb-1 pl-1 rounded-l-lg hover:bg-black hover:bg-opacity-80 w-9 text-4xl absolute right-0 top-[45%]\" onclick=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var14 templ.ComponentScript = templ.JSFuncCall("changeVideo", movie, true)
+		var templ_7745c5c3_Var14 templ.ComponentScript = templ.JSFuncCall("nextVideo", movie.Videos)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14.Call)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\">❯</button></div></div><script>\n    let i = -1\n    const iframe = document.getElementById(\"videoIframe\");\n    const poster = document.getElementById(\"poster\");\n    const prev = document.getElementById(\"prev\");\n    const nextB = document.getElementById(\"next\");\n    function changeVideo(movie, next) {\n        let videos = movie.videos\n        if (next) {\n            if (i === -1) {\n                let width = poster.offsetWidth;\n                iframe.classList.toggle('hidden')\n                poster.classList.toggle('hidden')\n                iframe.style.width = width + 'px';\n                prev.classList.toggle('hidden')\n            }\n            if (i < videos.length - 1) {\n                i++;\n                if (i === videos.length - 1){\n                    nextB.classList.toggle('hidden')\n                }\n                iframe.src = \"https://www.youtube.com/embed/\" + videos[i].key + \"?autoplay=1\";\n                return\n            }\n        } else if (i >= 0) {\n            i--;\n            if (i === videos.length - 2) {\n                nextB.classList.toggle('hidden')\n            }\n            if (i === -1) {\n                prev.classList.toggle('hidden')\n                iframe.classList.toggle('hidden')\n                poster.classList.toggle('hidden')\n                iframe.src = \"\"\n                return\n            }\n            iframe.src = \"https://www.youtube.com/embed/\" + videos[i].key + \"?autoplay=1\";\n            return\n        }\n    }\n</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\">❯</button></div></div><script>\n    let i = -1\n    const iframe = document.getElementById(\"videoIframe\");\n    const poster = document.getElementById(\"poster\");\n    const prev = document.getElementById(\"prev\");\n    const next = document.getElementById(\"next\");\n    function prevVideo(videos) {\n        if (i >= 0) {\n            i--;\n            if (i === videos.length - 2) {\n                next.classList.toggle('hidden')\n            }\n            if (i === -1) {\n                prev.classList.toggle('hidden')\n                iframe.classList.toggle('hidden')\n                poster.classList.toggle('hidden')\n                iframe.src = \"\"\n                return\n            }\n            iframe.src = \"https://www.youtube.com/embed/\" + videos[i].key + \"?autoplay=1\";\n            return\n        }\n    }\n    function nextVideo(videos) {\n        if (i === -1) {\n            let width = poster.offsetWidth;\n            iframe.classList.toggle('hidden')\n            poster.classList.toggle('hidden')\n            iframe.style.width = width + 'px';\n            prev.classList.toggle('hidden')\n        }\n        if (i < videos.length - 1) {\n            i++;\n            if (i === videos.length - 1) {\n                next.classList.toggle('hidden')\n            }\n            iframe.src = \"https://www.youtube.com/embed/\" + videos[i].key + \"?autoplay=1\";\n            return\n        }\n    }\n</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
