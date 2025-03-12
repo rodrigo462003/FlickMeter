@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/rodrigo462003/FlickMeter/model"
 )
@@ -12,26 +13,33 @@ import (
 type MovieGetter interface {
 	GetMovie(id string) (movie *model.Movie, err error)
 	GetVideos(id string) (videos []model.Video, err error)
+	MoviesIndex() (movieIndex []model.MovieIndex)
 }
 
 type movieGet struct {
-	Auth string
+	auth   string
+	bkTree []model.MovieIndex
 }
 
-func NewMovieGet(token string) *movieGet {
-	return &movieGet{fmt.Sprintf("Bearer %s", token)}
+func NewMovieGet(token string, filePath string) *movieGet {
+    _ = (filePath)
+	return &movieGet{fmt.Sprintf("Bearer %s", token), []model.MovieIndex{}}
+}
+
+func (m *movieGet) MoviesIndex() []model.MovieIndex {
+    return m.bkTree
 }
 
 func (m *movieGet) GetMovie(id string) (*model.Movie, error) {
 	url := fmt.Sprintf("https://api.themoviedb.org/3/movie/%s?", id)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", m.Auth)
+	req.Header.Set("Authorization", m.auth)
 
 	client := &http.Client{}
 	res, err := client.Do(req)
@@ -61,7 +69,7 @@ func (m *movieGet) GetVideos(id string) ([]model.Video, error) {
 	}
 
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", m.Auth)
+	req.Header.Set("Authorization", m.auth)
 
 	client := &http.Client{}
 	res, err := client.Do(req)
@@ -83,4 +91,18 @@ func (m *movieGet) GetVideos(id string) ([]model.Video, error) {
 	}
 
 	return response.Results, nil
+}
+
+func movieTree(filePath string) (movieIdx []model.MovieIndex) {
+	bytes, err := os.ReadFile(filePath)
+	if err != nil {
+		panic(err)
+	}
+
+	var results []model.MovieIndex
+	if err := json.Unmarshal(bytes, &results); err != nil {
+		panic(err)
+	}
+
+	return results
 }

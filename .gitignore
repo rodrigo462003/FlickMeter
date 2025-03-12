@@ -31,3 +31,5 @@ tmp
 views/templates/*.txt
 
 dump.rdb
+
+movies.json
