@@ -7,15 +7,15 @@ import (
 
 type MovieService interface {
 	GetMovie(movieID string) (movie *model.Movie, err error)
+	SearchMovies(search string) (movies []model.MovieIndex)
 }
 
 type movieService struct {
 	movieAPI.MovieGetter
 }
 
-func NewMovieService(apiToken string) *movieService {
-	movieGetter := movieAPI.NewMovieGet(apiToken)
-	return &movieService{movieGetter}
+func NewMovieService(apiToken, filePath string) *movieService {
+	return &movieService{movieAPI.NewMovieGet(apiToken, filePath)}
 }
 
 func (s *movieService) GetMovie(movieID string) (movie *model.Movie, err error) {
@@ -31,4 +31,9 @@ func (s *movieService) GetMovie(movieID string) (movie *model.Movie, err error) 
 	movie.Videos = videos
 
 	return movie, nil
+}
+
+func (s *movieService) SearchMovies(search string) (movies []model.MovieIndex) {
+	movies = s.MovieGetter.MoviesIndex()
+	return movies[len(movies)-5:]
 }

@@ -19,6 +19,7 @@ func NewMovieHandler(s service.MovieService) *movieHandler {
 
 func (h *movieHandler) Register(g *echo.Group) {
 	g.GET("/:id", h.GetMovie)
+    g.POST("/search", h.SearchMovies)
 }
 
 func (h *movieHandler) GetMovie(c echo.Context) error {
@@ -33,4 +34,12 @@ func (h *movieHandler) GetMovie(c echo.Context) error {
 	}
 
 	return Render(c, http.StatusOK, templates.Movie(*movie, true))
+}
+
+func (h *movieHandler) SearchMovies(c echo.Context) error {
+	search := c.FormValue("search")
+
+    movies := h.service.SearchMovies(search)
+
+    return c.JSON(http.StatusOK, movies)
 }

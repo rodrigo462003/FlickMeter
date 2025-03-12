@@ -2,6 +2,7 @@ package templates
 
 templ navbar(isAuth bool) {
 <nav id="nav" class="w-full z-10 fixed flex items-center text-xl font-mono font-extrabold space-x-6 p-2 justify-end">
+    @search()
     if !isAuth {
     @button("", "button", "Sign In", newHtmx("/user/signIn", "", "#modal", "", "", false))
     @anchorButton("button", "Register", newHtmx("/user/register", "", "#modal", "", "", false))

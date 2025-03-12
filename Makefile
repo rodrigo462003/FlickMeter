@@ -4,12 +4,14 @@ DATABASE_NAME := flickmeterdb
 psgrs:
 	@echo "Starting PostgreSQL service..."
 	sudo systemctl start $(POSTGRESQL_SERVICE)
+	@echo "PostgreSQL Started"
 	#@echo "Running SQL script to create tables if needed..."
 	#sudo -u postgres psql $(DATABASE_NAME) -f ./scripts/create_tables.sql  #
 
 redis:
 	@echo "Starting Redis server..."
 	sudo systemctl start redis.service
+	@echo "Redis Started..."
 
 live/templ:
 	templ generate --watch --proxy="http://localhost:8080" --open-browser=false -v
