@@ -70,3 +70,7 @@ type MovieIndex struct {
 	Popularity    float64 `json:"popularity"`
 	Video         bool    `json:"video"`
 }
+
+func (movie MovieIndex) String() string {
+	return movie.OriginalTitle
+}

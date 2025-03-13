@@ -1,12 +1,18 @@
 package fuzzy
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/rodrigo462003/FlickMeter/model"
+)
 
 func TestLevenshteinDistance(t *testing.T) {
 	tests := []struct {
 		s, t   string
 		result int
 	}{
+		{"ola", "OLA", 0},
+		{"ola", "ola", 0},
 		{"kitten", "sitting", 3},
 		{"flaw", "lawn", 2},
 		{"gumbo", "gambit", 3},
@@ -28,7 +34,20 @@ func TestLevenshteinDistance(t *testing.T) {
 }
 
 func TestTree(t *testing.T) {
-	tree := newTree("cat", "bat", "rat", "hat", "caterpillar", "apple")
+	movieTitles := []string{"cat", "bat", "rat", "hat", "caterpillar", "apple"}
+	movies := make([]Stringer, len(movieTitles))
+
+	for i, title := range movieTitles {
+		movies[i] = model.MovieIndex{
+			ID:            i + 1,
+			OriginalTitle: title,
+			Popularity:    0.0,
+			Video:         false,
+			Adult:         false,
+		}
+	}
+
+	tree := NewTree(movies)
 
 	tests := []struct {
 		word     string
@@ -47,9 +66,9 @@ func TestTree(t *testing.T) {
 		t.Run("Insert and Lookup "+test.word, func(t *testing.T) {
 			word := tree.Lookup(test.word)
 
-			if word != test.expected {
+			if word.String() != test.expected {
 				expectedLev := levenshtein(test.word, test.expected)
-				gotLev := levenshtein(word, test.word)
+				gotLev := levenshtein(word.String(), test.word)
 				if expectedLev < gotLev {
 					t.Errorf("Expected word %s, but got %s", test.expected, word)
 				}
