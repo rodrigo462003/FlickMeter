@@ -8,7 +8,7 @@ import (
 
 templ search() {
 <input class="form-control" type="search" name="search" placeholder="Begin Typing To Search Users..."
-    hx-post="/movie/search" hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load" hx-target="body" />
+    hx-post="/movie/search" hx-trigger="input changed delay:500ms, keyup[key=='Enter'], input" hx-target="body" />
 }
 
 templ Movie(movie model.Movie, isAuth bool) {

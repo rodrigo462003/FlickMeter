@@ -1,13 +1,19 @@
 package fuzzy
 
+import "strings"
+
+type Stringer interface {
+	String() string
+}
+
 type Node struct {
-	word     string
+	value    Stringer
 	children map[int]*Node
 }
 
-func newNode(s string) *Node {
+func newNode(v Stringer) *Node {
 	return &Node{
-		word:     s,
+		value:    v,
 		children: make(map[int]*Node),
 	}
 }
@@ -16,7 +22,7 @@ type Tree struct {
 	root *Node
 }
 
-func newTree(toInsert ...string) *Tree {
+func NewTree(toInsert []Stringer) *Tree {
 	tree := &Tree{}
 	for _, w := range toInsert {
 		tree.insert(w)
@@ -24,70 +30,66 @@ func newTree(toInsert ...string) *Tree {
 	return tree
 }
 
-func (t *Tree) insert(word string) *Node {
+func (t *Tree) insert(val Stringer) {
 	if t.root == nil {
-		t.root = newNode(word)
-		return t.root
+		t.root = newNode(val)
+		return
 	}
 
 	u := t.root
 	for u != nil {
-		k := levenshtein(u.word, word)
-
+		k := levenshtein(u.value.String(), val.String())
 		if k == 0 {
-			return u
+			return
 		}
 
 		v, exists := u.children[k]
 		if !exists {
-			v = newNode(word)
-
+			v = newNode(val)
 			u.children[k] = v
-
-			return v
+			return
 		}
 		u = v
 	}
 
-	return nil
+	return
 }
 
-func (tree *Tree) Lookup(word string) string {
+func (tree *Tree) Lookup(s string) []Stringer {
+	const tol = 5
 	if tree.root == nil {
-		return ""
+		return nil
 	}
 
-	stack := []*Node{tree.root}
-	bestWord := ""
-	bestDist := 100
+	var ans [tol + 1][]Stringer
 
+	stack := []*Node{tree.root}
 	for len(stack) > 0 {
 		u := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
 
-		dU := levenshtein(word, u.word)
-
-		if dU < bestDist {
-			bestWord = u.word
-			bestDist = dU
+		d := levenshtein(s, u.value.String())
+		if d <= tol {
+			ans[d] = append(ans[d], u.value)
 		}
 
 		for dist, child := range u.children {
-			if dist <= bestDist {
+			if dist > d-tol && dist < d+tol {
 				stack = append(stack, child)
 			}
 		}
 	}
 
-	return bestWord
+	for i := 1; i <= tol; i++ {
+		ans[0] = append(ans[0], ans[i]...)
+	}
+
+	return ans[0][:min(5, len(ans[0]))]
 }
 
 func levenshtein(s, t string) int {
-	m := len(s)
-	n := len(t)
-
-	v0 := make([]int, n+1)
-	v1 := make([]int, n+1)
+	m, n := len(s), len(t)
+	v0, v1 := make([]int, n+1), make([]int, n+1)
 
 	for i := range v0 {
 		v0[i] = i
@@ -100,13 +102,11 @@ func levenshtein(s, t string) int {
 			deletionCost := v0[j+1] + 1
 			insertionCost := v1[j] + 1
 			substitutionCost := v0[j] + 1
-			if s[i] == t[j] {
+			if strings.EqualFold(string(s[i]), string(t[j])) {
 				substitutionCost = v0[j]
 			}
-
 			v1[j+1] = min(deletionCost, insertionCost, substitutionCost)
 		}
-
 		copy(v0, v1)
 	}
 

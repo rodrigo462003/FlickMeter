@@ -34,6 +34,13 @@ func (s *movieService) GetMovie(movieID string) (movie *model.Movie, err error) 
 }
 
 func (s *movieService) SearchMovies(search string) (movies []model.MovieIndex) {
-	movies = s.MovieGetter.MoviesIndex()
-	return movies[len(movies)-5:]
+	tree := s.MovieGetter.Tree()
+	m := tree.Lookup(search)
+
+	movies = make([]model.MovieIndex, len(m))
+	for i, m := range m {
+		movies[i] = m.(model.MovieIndex)
+	}
+
+	return movies
 }

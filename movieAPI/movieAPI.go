@@ -7,27 +7,34 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/rodrigo462003/FlickMeter/fuzzy"
 	"github.com/rodrigo462003/FlickMeter/model"
 )
 
 type MovieGetter interface {
 	GetMovie(id string) (movie *model.Movie, err error)
 	GetVideos(id string) (videos []model.Video, err error)
-	MoviesIndex() (movieIndex []model.MovieIndex)
+	Tree() (tree fuzzy.Tree)
 }
 
 type movieGet struct {
-	auth   string
-	bkTree []model.MovieIndex
+	auth string
+	tree fuzzy.Tree
 }
 
 func NewMovieGet(token string, filePath string) *movieGet {
-    _ = (filePath)
-	return &movieGet{fmt.Sprintf("Bearer %s", token), []model.MovieIndex{}}
+	movies := GetMovieIndex(filePath)
+	stringers := make([]fuzzy.Stringer, len(movies))
+	for i := range stringers {
+		stringers[i] = movies[i]
+	}
+	tree := fuzzy.NewTree(stringers)
+
+	return &movieGet{fmt.Sprintf("Bearer %s", token), *tree}
 }
 
-func (m *movieGet) MoviesIndex() []model.MovieIndex {
-    return m.bkTree
+func (m *movieGet) Tree() fuzzy.Tree {
+	return m.tree
 }
 
 func (m *movieGet) GetMovie(id string) (*model.Movie, error) {
@@ -93,16 +100,16 @@ func (m *movieGet) GetVideos(id string) ([]model.Video, error) {
 	return response.Results, nil
 }
 
-func movieTree(filePath string) (movieIdx []model.MovieIndex) {
-	bytes, err := os.ReadFile(filePath)
+func GetMovieIndex(filePath string) (movies []model.MovieIndex) {
+	file, err := os.Open(filePath)
 	if err != nil {
 		panic(err)
 	}
 
-	var results []model.MovieIndex
-	if err := json.Unmarshal(bytes, &results); err != nil {
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&movies); err != nil {
 		panic(err)
 	}
 
-	return results
+	return movies
 }

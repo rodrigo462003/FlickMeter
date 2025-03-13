@@ -33,3 +33,4 @@ views/templates/*.txt
 dump.rdb
 
 movies.json
+movies_debug.json

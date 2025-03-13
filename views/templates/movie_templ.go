@@ -35,7 +35,7 @@ func search() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<input class=\"form-control\" type=\"search\" name=\"search\" placeholder=\"Begin Typing To Search Users...\" hx-post=\"/movie/search\" hx-trigger=\"input changed delay:500ms, keyup[key==&#39;Enter&#39;], load\" hx-target=\"body\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<input class=\"form-control\" type=\"search\" name=\"search\" placeholder=\"Begin Typing To Search Users...\" hx-post=\"/movie/search\" hx-trigger=\"input changed delay:500ms, keyup[key==&#39;Enter&#39;], input\" hx-target=\"body\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

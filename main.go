@@ -26,8 +26,8 @@ func main() {
 	userService := service.NewUserService(userStore, sessionStore, emailSender)
 	userHandler := handlers.NewUserHandler(userService)
 
-    movieService := service.NewMovieService(env["API_TOKEN"], env["FILE_PATH"])
-    movieHandler := handlers.NewMovieHandler(movieService)
+	movieService := service.NewMovieService(env["API_TOKEN"], env["FILE_PATH_DEBUG"])
+	movieHandler := handlers.NewMovieHandler(movieService)
 
 	e := echo.New()
 	e.Debug = true
