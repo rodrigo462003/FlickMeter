@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -18,17 +19,17 @@ func NewMovieHandler(s service.MovieService) *movieHandler {
 }
 
 func (h *movieHandler) Register(g *echo.Group) {
-	g.GET("/:id", h.GetMovie)
-    g.POST("/search", h.SearchMovies)
+	g.GET("/:id", h.Get)
+	g.POST("/search", h.Search)
 }
 
-func (h *movieHandler) GetMovie(c echo.Context) error {
+func (h *movieHandler) Get(c echo.Context) error {
 	id := c.Param("id")
 	if len(id) < 0 {
 		return echo.ErrBadRequest.WithInternal(errors.New("No movie ID param."))
 	}
 
-	movie, err := h.service.GetMovie(id)
+	movie, err := h.service.Get(id)
 	if err != nil {
 		return echo.ErrBadRequest.WithInternal(err)
 	}
@@ -36,10 +37,15 @@ func (h *movieHandler) GetMovie(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.Movie(*movie, true))
 }
 
-func (h *movieHandler) SearchMovies(c echo.Context) error {
-	search := c.FormValue("search")
+func (h *movieHandler) Search(c echo.Context) error {
+	query := c.FormValue("search")
 
-    movies := h.service.SearchMovies(search)
+	movies, err := h.service.Search(query)
+	if err != nil {
+		return echo.ErrInternalServerError.WithInternal(err)
+	}
 
-    return c.JSON(http.StatusOK, movies)
+    fmt.Println(movies)
+
+	return Render(c, http.StatusOK, templates.Results(movies))
 }

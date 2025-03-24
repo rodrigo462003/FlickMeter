@@ -6,25 +6,25 @@ import (
 )
 
 type MovieService interface {
-	GetMovie(movieID string) (movie *model.Movie, err error)
-	SearchMovies(search string) (movies []model.MovieIndex)
+	Get(movieID string) (movie *model.Movie, err error)
+	Search(query string) (movies []model.Movie, err error)
 }
 
 type movieService struct {
-	movieAPI.MovieGetter
+	fetcher movieAPI.MovieFetcher
 }
 
-func NewMovieService(apiToken, filePath string) *movieService {
-	return &movieService{movieAPI.NewMovieGet(apiToken, filePath)}
+func NewMovieService(token string) *movieService {
+	return &movieService{movieAPI.NewMovieGet(token)}
 }
 
-func (s *movieService) GetMovie(movieID string) (movie *model.Movie, err error) {
-	movie, err = s.MovieGetter.GetMovie(movieID)
+func (s *movieService) Get(movieID string) (movie *model.Movie, err error) {
+	movie, err = s.fetcher.Get(movieID)
 	if err != nil {
 		return nil, err
 	}
 
-	videos, err := s.MovieGetter.GetVideos(movieID)
+	videos, err := s.fetcher.Videos(movieID)
 	if err != nil {
 		return nil, err
 	}
@@ -33,14 +33,6 @@ func (s *movieService) GetMovie(movieID string) (movie *model.Movie, err error) 
 	return movie, nil
 }
 
-func (s *movieService) SearchMovies(search string) (movies []model.MovieIndex) {
-	tree := s.MovieGetter.Tree()
-	m := tree.Lookup(search)
-
-	movies = make([]model.MovieIndex, len(m))
-	for i, m := range m {
-		movies[i] = m.(model.MovieIndex)
-	}
-
-	return movies
+func (s *movieService) Search(query string) (movies []model.Movie, err error) {
+	return s.fetcher.Search(query)
 }

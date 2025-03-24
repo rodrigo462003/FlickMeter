@@ -9,7 +9,7 @@ psgrs:
 
 redis:
 	@echo "Starting Redis server..."
-	sudo systemctl start redis-server.service
+	sudo systemctl start redis.service
 	redis-server --daemonize yes
 
 live/templ:
