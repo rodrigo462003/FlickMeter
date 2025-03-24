@@ -62,15 +62,3 @@ type Movie struct {
 	VoteCount           int                 `json:"vote_count"`
 	Videos              []Video             `json:"videos"`
 }
-
-type MovieIndex struct {
-	Adult         bool    `json:"adult"`
-	ID            int     `json:"id"`
-	OriginalTitle string  `json:"original_title"`
-	Popularity    float64 `json:"popularity"`
-	Video         bool    `json:"video"`
-}
-
-func (movie MovieIndex) String() string {
-	return movie.OriginalTitle
-}
