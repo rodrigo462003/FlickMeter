@@ -1,9 +1,8 @@
 package templates
 
 templ navbar(isAuth bool) {
-	<nav id="nav" class="w-full z-10 fixed flex items-center text-xl font-mono font-extrabold space-x-6 p-2 justify-end">
-		<div class="absolute left-1/2 -translate-x-1/2">@search()
-</div>
+	<nav id="nav" class="sticky w-full z-10 top-0 flex items-center text-xl font-mono font-extrabold space-x-6 p-2 justify-end">
+    @search()
 		if !isAuth {
 			@button("", "button", "Sign In", newHtmx("/user/signIn", "", "#modal", "", "", false))
 			@anchorButton("button", "Register", newHtmx("/user/register", "", "#modal", "", "", false))
@@ -13,17 +12,17 @@ templ navbar(isAuth bool) {
 	</nav>
 	<script>
     const navbar = document.getElementById('nav');
-    navbar.style.backgroundPosition = '0% -100%'
+    navbar.style.backgroundPosition = '0% 0%';
     let isTransparent = true
     window.addEventListener('scroll', function () {
         if (!navbar) return;
         const scrollValue = window.scrollY;
-        if (scrollValue > 0 && isTransparent) {
+        if (scrollValue > 0 ) {
             isTransparent = false
             navbar.style.backgroundPosition = '0% -100%'
             return
         }
-        if (scrollValue === 0 && !isTransparent) {
+        if (scrollValue === 0 ) {
             navbar.style.backgroundPosition = '0% 0%';
             isTransparent = true
         }
