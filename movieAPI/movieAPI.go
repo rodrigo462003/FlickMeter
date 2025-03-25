@@ -106,7 +106,6 @@ func (c *movieClient) Videos(id string) ([]model.Video, error) {
 
 func (c *movieClient) Search(query string) ([]model.Movie, error) {
     query = url.PathEscape(query)
-    fmt.Println(query)
 	url := fmt.Sprintf("https://api.themoviedb.org/3/search/movie?query=%s", query)
 
 	req, err := http.NewRequest("GET", url, nil)

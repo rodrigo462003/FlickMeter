@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -44,8 +43,6 @@ func (h *movieHandler) Search(c echo.Context) error {
 	if err != nil {
 		return echo.ErrInternalServerError.WithInternal(err)
 	}
-
-    fmt.Println(movies)
 
 	return Render(c, http.StatusOK, templates.Results(movies))
 }

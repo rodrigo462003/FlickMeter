@@ -34,5 +34,6 @@ func (s *movieService) Get(movieID string) (movie *model.Movie, err error) {
 }
 
 func (s *movieService) Search(query string) (movies []model.Movie, err error) {
-	return s.fetcher.Search(query)
+	movies, err = s.fetcher.Search(query)
+	return movies[:min(5, len(movies))], err
 }
