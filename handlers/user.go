@@ -49,6 +49,7 @@ func (h *userHandler) PostSignOff(c echo.Context) error {
 		}
 	}
 
+
 	if session, err := c.Cookie("session"); err == nil {
 		if err = h.service.DeleteSession(session.Value); err != nil {
 			return err

@@ -7,25 +7,13 @@ import (
 "strings"
 )
 
-templ search() {
-<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
-    <div class="relative w-full">
-        <input class="form-control w-full" type="search" name="search" placeholder="Begin Typing To Search Users..."
-            hx-post="/movie/search" hx-trigger="input changed delay:1s, keyup[key=='Enter']"
-            hx-target="#search-results" />
-        <div class="absolute w-full bg-white border border-gray-300 shadow-md mt-1 rounded-md z-10" id="search-results">
-        </div>
-    </div>
-</div>
-
-}
 
 templ Results(movies []model.Movie) {
 for _, movie := range movies {
-<a href={ templ.SafeURL(fmt.Sprintf("/movie/%d", movie.ID)) } type="button" class="flex">
+<a href={ templ.SafeURL(fmt.Sprintf("/movie/%d", movie.ID)) } type="button" class="items-center gap-2 flex">
     <img width="50" src={ "https://image.tmdb.org/t/p/original/" + movie.PosterPath } alt={ movie.Title + "poster" } />
     <h>
-        { movie.OriginalTitle }
+        { movie.Title }
     </h>
 </a>
 }
@@ -33,54 +21,106 @@ for _, movie := range movies {
 
 templ Movie(movie model.Movie, isAuth bool) {
 @Base()
-<body class="min-h-screen" style={ fmt.Sprintf("backdrop-filter:grayscale(0.9) blur(40px) brightness(0.9);background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
+<body class="relative flex-col min-h-screen" style={ fmt.Sprintf("background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
+    <div class="h-full absolute inset-0 bg-gray-800 bg-opacity-60 backdrop-blur-lg -z-10"></div>
     @navbar(isAuth)
-    <div class="flex flex-col pt-16 px-52" id="content">
-        <h1 class="text-indigo-700 font-extrabold font-sans text-7xl">
-            { movie.Title }
-        </h1>
-        <div class="flex gap-20">
-            <p>{ strings.Split(movie.ReleaseDate, "-")[0] }</p>
-            <p>{ strconv.Itoa(movie.Runtime) + "m" }</p>
-            for i, genre := range movie.Genres {
-            if i == 0 {
-            { genre.Name }
-            } else {
-            { " / " + genre.Name }
-            }
-            }
+    <div class="text-white flex flex-col pt-16 px-52 gap-3" id="content">
+        <div class="flex items-center">
+            <div class="flex flex-col">
+                <h1 class="font-bold font-sans text-4xl">
+                    { movie.Title }
+                </h1>
+                <div class="text-gray-300 flex gap-2">
+                    <p>{ strings.Split(movie.ReleaseDate, "-")[0] }</p>
+                    <p>•</p>
+                    <p>{ strconv.Itoa(movie.Runtime) + "m" }</p>
+                    <p>•</p>
+                    for i, genre := range movie.Genres {
+                    if i == 0 {
+                    { genre.Name }
+                    } else {
+                    { " / " + genre.Name }
+                    }
+                    }
+                </div>
+            </div>
+            <div class="ml-auto">
+                @Ratings(movie.VoteAverage)
+            </div>
         </div>
         <div class="flex gap-1 h-[450px] ">
-            <img class="h-full rounded-lg w-auto object-cover" id="poster" src={ fmt.Sprintf("https://image.tmdb.org/t/p/original/%s", movie.PosterPath) } alt="movie poster" />
-            @Frame(movie.Videos)
+            <img class="h-full rounded-lg w-auto object-cover" id="poster" src={
+                fmt.Sprintf("https://image.tmdb.org/t/p/original/%s", movie.PosterPath) } alt="movie poster" />
+            @Frame(movie.Trailer())
         </div>
-        <div class="flex p-4 flex-col gap-4">
-            @Ratings(movie.VoteAverage)
             <p class="overview">
                 { movie.Overview }
             </p>
-        </div>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
+            <p class="overview">
+                { movie.Overview }
+            </p>
     </div>
 </body>
 }
 
 templ Ratings(rating float64) {
-<div class="flex gap-2">
-    <div>
-        {fmt.Sprintf("%.1f",rating)} / 10
-    </div>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
-        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="gold">
-        </path>
-    </svg>
+<div class="flex  gap-2 items-center">
+    <div class="flex items-end">
+        <div class="font-bold text-xl">
+            { fmt.Sprintf("%.1f",rating) }
+        </div>
+         <div class="text-gray-300 text-sm">
+            /10
+        </div>
+  </div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26">
+    <path d="M12 16.8l5 3c.7.4 1.4-.2 1.2-.9l-1.3-5.6 4.3-3.7c.6-.5.3-1.4-.4-1.5l-5.6-.4-2.3-5.2c-.3-.7-1.2-.7-1.5 0l-2.3 5.2-5.6.4c-.8.1-1 .9-.4 1.5l4.3 3.7-1.3 5.6c-.2.7.5 1.3 1.2.9z"
+          fill="gold" stroke="gold" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
 </div>
 }
 
-templ Frame(videos []model.Video) {
-    if len(videos) > 0 {
-    <iframe src={fmt.Sprintf("https://www.youtube.com/embed/%s?autoplay=1&mute=1", videos[len(videos)-1].Key)}
+templ Frame(trailer *model.Video) {
+if trailer != nil {
+<iframe src={ fmt.Sprintf("https://www.youtube.com/embed/%s?autoplay=1&mute=1", trailer.Key) }
     class="h-full w-full rounded-lg" id="videoIframe" title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-    }
+}
 }
