@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"slices"
+	"time"
+)
 
 type Genre struct {
 	ID   int    `json:"id"`
@@ -61,4 +64,14 @@ type Movie struct {
 	VoteAverage         float64             `json:"vote_average"`
 	VoteCount           int                 `json:"vote_count"`
 	Videos              []Video             `json:"videos"`
+}
+
+func (m *Movie) Trailer() *Video {
+	for _, video := range slices.Backward(m.Videos) {
+		if video.Type == "Trailer" {
+			return &video
+		}
+	}
+
+	return nil
 }

@@ -1,29 +1,53 @@
 package templates
 
+templ search() {
+<div class="flex-grow bg-transparent w-full max-w-md mx-auto">
+    <div class="relative w-full">
+        <div class="relative w-full flex items-center">
+            <input id="search" class="text-gray-100 outline-2 bg-transparent placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100
+                hover:placeholder:opacity-100 placeholder:opacity-0 text-sm
+                border border-indigo-700 rounded-md focus:outline-offset-0 outline-none focus:outline-none focus:outline-indigo-700
+                w-full p-2 pr-6" name="search" hx-post="/movie/search"
+                hx-trigger="input changed delay:1s, keyup[key=='Enter']" hx-target="#search-results" />
+            <svg class="text-indigo-700 absolute right-2 w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010 17.5a7.5 7.5 0 006.65-3.85z"></path>
+            </svg>
+        </div>
+        <div class="overflow-hidden absolute w-full bg-white mt-1 rounded-md" id="search-results"></div>
+    </div>
+</div>
+}
+
 templ navbar(isAuth bool) {
-	<nav id="nav" class="sticky w-full z-10 top-0 flex items-center text-xl font-mono font-extrabold space-x-6 p-2 justify-end">
+<nav id="nav"
+    class="sticky w-full z-10 top-0 flex items-center text-xl font-mono font-extrabold space-x-6 p-2 justify-between">
     @search()
-		if !isAuth {
-			@button("", "button", "Sign In", newHtmx("/user/signIn", "", "#modal", "", "", false))
-			@anchorButton("button", "Register", newHtmx("/user/register", "", "#modal", "", "", false))
-		} else {
-			@profileButton()
-		}
-	</nav>
-	<script>
+    if !isAuth {
+    @button("", "button", "Sign In", newHtmx("/user/signIn", "", "#modal", "", "", false))
+    @anchorButton("button", "Register", newHtmx("/user/register", "", "#modal", "", "", false))
+    } else {
+    @profileButton()
+    }
+</nav>
+<script>
     const navbar = document.getElementById('nav');
+    const search = document.getElementById('search');
     navbar.style.backgroundPosition = '0% 0%';
     let isTransparent = true
     window.addEventListener('scroll', function () {
         if (!navbar) return;
         const scrollValue = window.scrollY;
-        if (scrollValue > 0 ) {
+        if (scrollValue > 0) {
             isTransparent = false
             navbar.style.backgroundPosition = '0% -100%'
+            search.style.color = 'oklch(0.278 0.033 256.848)';
             return
         }
-        if (scrollValue === 0 ) {
+        if (scrollValue === 0) {
             navbar.style.backgroundPosition = '0% 0%';
+            search.style.color = 'oklch(0.967 0.003 264.542)';
             isTransparent = true
         }
     }
@@ -32,64 +56,47 @@ templ navbar(isAuth bool) {
 }
 
 templ profileButton() {
-	<div class="flex relative">
-		<button
-			onclick="toggleDrop()"
-			id="profileButton"
-			type="button"
-			class="top-1/2 transition-transform active:scale-90
-        focus:outline-none hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 rounded-full text-indigo-700"
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				height="30"
-				fill="currentColor"
-				class="bi bi-person-circle"
-				viewBox="0 0 16 16"
-			>
-				<path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
-				<path
-					fill-rule="evenodd"
-					d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"
-				></path>
-			</svg>
-		</button>
-		@dropDown()
-	</div>
-	<script>
+<div class="flex relative">
+    <button onclick="toggleDrop()" id="profileButton" type="button" class="top-1/2 transition-transform active:scale-90
+        focus:outline-none hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 rounded-full text-indigo-700">
+        <svg xmlns="http://www.w3.org/2000/svg" height="30" fill="currentColor" class="bi bi-person-circle"
+            viewBox="0 0 16 16">
+            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
+            <path fill-rule="evenodd"
+                d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1">
+            </path>
+        </svg>
+    </button>
+    @dropDown()
+</div>
+<script>
     const dropDown = document.getElementById('profileDrop');
     const button = document.getElementById('profileButton');
 
     function toggleDrop() {
-        dropDown.classList.toggle('opacity-0');
+        dropDown.classList.toggle('hidden');
     }
 
     document.addEventListener('click', (event) => {
         if (!dropDown.contains(event.target) && !button.contains(event.target)) {
-            dropDown.classList.add('opacity-0');
+            dropDown.classList.add('hidden');
         }
     });
 </script>
 }
 
 templ dropDown() {
-	<div
-		id="profileDrop"
-		class="transition-all duration-300 ease-in-out opacity-0 absolute right-8 top-6 mt-2 bg-white shadow-md rounded-lg p-2"
-	>
-		@dropA("Profile", "")
-		@dropA("Settings", "")
-		@dropA("Sign out", "/user/signOff")
-	</div>
+<div id="profileDrop"
+    class="transition-all duration-300 ease-in-out hidden absolute right-8 top-6 mt-2 bg-white shadow-md rounded-lg p-2">
+    @dropA("Profile", "")
+    @dropA("Settings", "")
+    @dropA("Sign out", "/user/signOff")
+</div>
 }
 
 templ dropA(content, route string) {
-	<button
-		type="button"
-		hx-post={ route }
-		class="text-left w-full block transition-transform active:scale-90 focus:outline-none
-    hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-md text-indigo-700"
-	>
-		{ content }
-	</button>
+<button type="button" hx-post={ route } class="text-left w-full block transition-transform active:scale-90 focus:outline-none
+    hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-md text-indigo-700">
+    { content }
+</button>
 }
