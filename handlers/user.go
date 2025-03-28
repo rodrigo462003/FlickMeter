@@ -49,14 +49,13 @@ func (h *userHandler) PostSignOff(c echo.Context) error {
 		}
 	}
 
-
 	if session, err := c.Cookie("session"); err == nil {
 		if err = h.service.DeleteSession(session.Value); err != nil {
 			return err
 		}
 	}
 
-	c.Response().Header().Set("HX-Redirect", "/")
+	c.Response().Header().Set("HX-Refresh", "true")
 	return c.NoContent(http.StatusOK)
 }
 
@@ -90,7 +89,7 @@ func (h *userHandler) PostSignIn(c echo.Context) error {
 	}
 	c.SetCookie(NewCookieAuth(auth))
 
-	c.Response().Header().Set("HX-Redirect", "/")
+	c.Response().Header().Set("HX-Refresh", "true")
 	return c.NoContent(http.StatusOK)
 }
 
@@ -129,7 +128,7 @@ func (h *userHandler) PostVerify(c echo.Context) error {
 	}
 
 	c.SetCookie(NewCookieSession(session))
-	c.Response().Header().Set("HX-Redirect", "/")
+	c.Response().Header().Set("HX-Refresh", "true")
 	return c.NoContent(http.StatusCreated)
 }
 

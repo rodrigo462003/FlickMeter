@@ -37,12 +37,13 @@ func main() {
 		middleware.Recover(),
 		middleware.RateLimiter(limiterStore))
 
+	authMiddleware := userHandler.AuthMiddleware()
 	e.Static("/public", "./public")
-	e.GET("/", handlers.GetHome, userHandler.AuthMiddleware())
+	e.GET("/", handlers.GetHome, authMiddleware)
 
 	userHandler.Register(e.Group("/user"))
 
-	movieHandler.Register(e.Group("/movie"))
+	movieHandler.Register(e.Group("/movie"), authMiddleware)
 
 	e.Logger.Fatal(e.Start(env["ADDR"]))
 }
