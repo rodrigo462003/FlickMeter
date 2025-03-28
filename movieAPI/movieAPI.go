@@ -12,7 +12,6 @@ import (
 
 type MovieFetcher interface {
 	Get(id string) (movie *model.Movie, err error)
-	Videos(id string) (videos []model.Video, err error)
 	Search(query string) (movies []model.Movie, err error)
 }
 
@@ -71,11 +70,17 @@ func (c *movieClient) Get(id string) (*model.Movie, error) {
 		return nil, err
 	}
 
+	videos, err := c.Videos(movie.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	movie.Videos = videos
 	return movie, nil
 }
 
-func (c *movieClient) Videos(id string) ([]model.Video, error) {
-	url := fmt.Sprintf("https://api.themoviedb.org/3/movie/%s/videos", id)
+func (c *movieClient) Videos(id int) ([]model.Video, error) {
+	url := fmt.Sprintf("https://api.themoviedb.org/3/movie/%d/videos", id)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -105,7 +110,7 @@ func (c *movieClient) Videos(id string) ([]model.Video, error) {
 }
 
 func (c *movieClient) Search(query string) ([]model.Movie, error) {
-    query = url.PathEscape(query)
+	query = url.PathEscape(query)
 	url := fmt.Sprintf("https://api.themoviedb.org/3/search/movie?query=%s", query)
 
 	req, err := http.NewRequest("GET", url, nil)

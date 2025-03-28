@@ -3,6 +3,8 @@ package model
 import (
 	"slices"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Genre struct {
@@ -36,6 +38,19 @@ type Video struct {
 	ID          string    `json:"id"`
 }
 
+type Review struct {
+	gorm.Model
+	MovieID uint   `gorm:"not null;index"`
+	UserID  uint   `gorm:"not null;index;foreignKey:UserID"`
+	Review  string `gorm:"type:text;not null"`
+
+	User User `gorm:"foreignKey:UserID"`
+}
+
+func NewReview(review string, movieID, userID uint) *Review {
+	return &Review{MovieID: movieID, UserID: userID, Review: review}
+}
+
 type Movie struct {
 	Adult               bool                `json:"adult"`
 	BackdropPath        string              `json:"backdrop_path"`
@@ -64,9 +79,11 @@ type Movie struct {
 	VoteAverage         float64             `json:"vote_average"`
 	VoteCount           int                 `json:"vote_count"`
 	Videos              []Video             `json:"videos"`
+	Reviews             []Review
 }
 
 func (m *Movie) Trailer() *Video {
+	//Seems like api usually returns trailers at the end.
 	for _, video := range slices.Backward(m.Videos) {
 		if video.Type == "Trailer" {
 			return &video

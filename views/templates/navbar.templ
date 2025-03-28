@@ -1,10 +1,24 @@
 package templates
 
+import "github.com/rodrigo462003/FlickMeter/model"
+import "fmt"
+
+templ Results(movies []model.Movie) {
+for _, movie := range movies {
+<a href={ templ.SafeURL(fmt.Sprintf("/movie/%d", movie.ID)) } type="button" class="items-center gap-2 flex">
+    <img width="50" src={ "https://image.tmdb.org/t/p/original/" + movie.PosterPath } alt={ movie.Title + "poster" } />
+    <h>
+        { movie.Title }
+    </h>
+</a>
+}
+}
+
 templ search() {
 <div class="flex-grow bg-transparent w-full max-w-md mx-auto">
     <div class="relative w-full">
         <div class="relative w-full flex items-center">
-            <input id="search" class="text-gray-100 outline-2 bg-transparent placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100
+            <input id="search" class="text-gray-900 font-normal outline-2 bg-transparent placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100
                 hover:placeholder:opacity-100 placeholder:opacity-0 text-sm
                 border border-indigo-700 rounded-md focus:outline-offset-0 outline-none focus:outline-none focus:outline-indigo-700
                 w-full p-2 pr-6" name="search" hx-post="/movie/search"
@@ -15,14 +29,14 @@ templ search() {
                     d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010 17.5a7.5 7.5 0 006.65-3.85z"></path>
             </svg>
         </div>
-        <div class="overflow-hidden absolute w-full bg-white mt-1 rounded-md" id="search-results"></div>
+        <div class="overflow-hidden absolute w-full bg-gray-100 mt-1 rounded-md" id="search-results"></div>
     </div>
 </div>
 }
 
 templ navbar(isAuth bool) {
 <nav id="nav"
-    class="sticky w-full z-10 top-0 flex items-center text-xl font-mono font-extrabold space-x-6 p-2 justify-between">
+    class="sticky w-full z-10 top-0 bg-white flex items-center text-xl font-mono font-extrabold space-x-6 p-2 justify-between">
     @search()
     if !isAuth {
     @button("", "button", "Sign In", newHtmx("/user/signIn", "", "#modal", "", "", false))
@@ -31,28 +45,6 @@ templ navbar(isAuth bool) {
     @profileButton()
     }
 </nav>
-<script>
-    const navbar = document.getElementById('nav');
-    const search = document.getElementById('search');
-    navbar.style.backgroundPosition = '0% 0%';
-    let isTransparent = true
-    window.addEventListener('scroll', function () {
-        if (!navbar) return;
-        const scrollValue = window.scrollY;
-        if (scrollValue > 0) {
-            isTransparent = false
-            navbar.style.backgroundPosition = '0% -100%'
-            search.style.color = 'oklch(0.278 0.033 256.848)';
-            return
-        }
-        if (scrollValue === 0) {
-            navbar.style.backgroundPosition = '0% 0%';
-            search.style.color = 'oklch(0.967 0.003 264.542)';
-            isTransparent = true
-        }
-    }
-    );
-</script>
 }
 
 templ profileButton() {
@@ -87,7 +79,7 @@ templ profileButton() {
 
 templ dropDown() {
 <div id="profileDrop"
-    class="transition-all duration-300 ease-in-out hidden absolute right-8 top-6 mt-2 bg-white shadow-md rounded-lg p-2">
+    class="transition-all duration-300 ease-in-out bg-gray-100 hidden absolute right-8 top-6 mt-2 shadow-md rounded-lg p-2">
     @dropA("Profile", "")
     @dropA("Settings", "")
     @dropA("Sign out", "/user/signOff")

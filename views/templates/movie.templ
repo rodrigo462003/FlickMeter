@@ -1,30 +1,19 @@
 package templates
 
 import (
-"fmt"
-"github.com/rodrigo462003/FlickMeter/model"
-"strconv"
-"strings"
+    "fmt"
+    "strconv"
+    "strings"
+	"github.com/rodrigo462003/FlickMeter/model"
+	"slices"
 )
-
-
-templ Results(movies []model.Movie) {
-for _, movie := range movies {
-<a href={ templ.SafeURL(fmt.Sprintf("/movie/%d", movie.ID)) } type="button" class="items-center gap-2 flex">
-    <img width="50" src={ "https://image.tmdb.org/t/p/original/" + movie.PosterPath } alt={ movie.Title + "poster" } />
-    <h>
-        { movie.Title }
-    </h>
-</a>
-}
-}
 
 templ Movie(movie model.Movie, isAuth bool) {
 @Base()
 <body class="relative flex-col min-h-screen" style={ fmt.Sprintf("background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
-    <div class="h-full absolute inset-0 bg-gray-800 bg-opacity-60 backdrop-blur-lg -z-10"></div>
+    <div class="h-full absolute inset-0 bg-gray-800 bg-opacity-80 backdrop-saturate-200 backdrop-blur-lg -z-10"></div>
     @navbar(isAuth)
-    <div class="text-white flex flex-col pt-16 px-52 gap-3" id="content">
+    <div class="text-white flex flex-col pt-4 px-52 gap-3" id="content">
         <div class="flex items-center">
             <div class="flex flex-col">
                 <h1 class="font-bold font-sans text-4xl">
@@ -56,45 +45,12 @@ templ Movie(movie model.Movie, isAuth bool) {
             <p class="overview">
                 { movie.Overview }
             </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <p class="overview">
-                { movie.Overview }
-            </p>
+            <hr>
+            <h1 class="text-xl font-bold">Reviews</h1>
+            for review := range slices.Values(movie.Reviews) {
+                <p>{ review.User.Username }</p>
+                <p>{ review.Review }</p>
+            }
     </div>
 </body>
 }
