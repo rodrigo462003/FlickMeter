@@ -19,7 +19,7 @@ func New(connStr string) *gorm.DB {
 		Conn: sqlDB,
 	}), &gorm.Config{})
 
-	gormDB.AutoMigrate(&model.User{}, &model.VerificationCode{}, &model.Auth{})
+	gormDB.AutoMigrate(&model.User{}, &model.VerificationCode{}, &model.Auth{}, &model.Review{})
 
 	return gormDB
 }

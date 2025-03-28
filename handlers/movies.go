@@ -44,5 +44,6 @@ func (h *movieHandler) Search(c echo.Context) error {
 		return echo.ErrInternalServerError.WithInternal(err)
 	}
 
+	movies = movies[:min(5, len(movies))]
 	return Render(c, http.StatusOK, templates.Results(movies))
 }

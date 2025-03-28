@@ -23,10 +23,11 @@ func main() {
 	emailSender := email.NewMailSender(env["EMAIL_ADDR"], env["EMAIL_PW"], env["EMAIL_HOST"], env["EMAIL_PORT"])
 	sessionStore := store.NewSessionStore(env["REDIS_ADDR"], db)
 	userStore := store.NewUserStore(db)
+	reviewStore := store.NewReviewStore(db)
 	userService := service.NewUserService(userStore, sessionStore, emailSender)
 	userHandler := handlers.NewUserHandler(userService)
 
-	movieService := service.NewMovieService(env["API_TOKEN"])
+	movieService := service.NewMovieService(env["API_TOKEN"], reviewStore)
 	movieHandler := handlers.NewMovieHandler(movieService)
 
 	e := echo.New()
