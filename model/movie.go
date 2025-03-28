@@ -40,9 +40,10 @@ type Video struct {
 
 type Review struct {
 	gorm.Model
-	MovieID uint   `gorm:"not null;index"`
-	UserID  uint   `gorm:"not null;index;foreignKey:UserID"`
+	MovieID uint   `gorm:"not null;index;uniqueIndex:idx_movie_user"`
+	UserID  uint   `gorm:"not null;index;uniqueIndex:idx_movie_user"`
 	Review  string `gorm:"type:text;not null"`
+	Rating  uint   `gorm:"not null"`
 
 	User User `gorm:"foreignKey:UserID"`
 }

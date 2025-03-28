@@ -17,8 +17,8 @@ func NewMovieHandler(s service.MovieService) *movieHandler {
 	return &movieHandler{s}
 }
 
-func (h *movieHandler) Register(g *echo.Group) {
-	g.GET("/:id", h.Get)
+func (h *movieHandler) Register(g *echo.Group, authMiddleware echo.MiddlewareFunc) {
+	g.GET("/:id", h.Get, authMiddleware)
 	g.POST("/search", h.Search)
 }
 
@@ -33,7 +33,8 @@ func (h *movieHandler) Get(c echo.Context) error {
 		return echo.ErrBadRequest.WithInternal(err)
 	}
 
-	return Render(c, http.StatusOK, templates.Movie(*movie, true))
+	isAuth := c.Get("isAuth").(bool)
+	return Render(c, http.StatusOK, templates.Movie(*movie, isAuth))
 }
 
 func (h *movieHandler) Search(c echo.Context) error {

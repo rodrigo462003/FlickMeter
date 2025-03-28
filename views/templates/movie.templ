@@ -1,19 +1,20 @@
 package templates
 
 import (
-    "fmt"
-    "strconv"
-    "strings"
-	"github.com/rodrigo462003/FlickMeter/model"
-	"slices"
+"fmt"
+"github.com/rodrigo462003/FlickMeter/model"
+"slices"
+"strconv"
+"strings"
 )
 
 templ Movie(movie model.Movie, isAuth bool) {
 @Base()
+
 <body class="relative flex-col min-h-screen" style={ fmt.Sprintf("background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
     <div class="h-full absolute inset-0 bg-gray-800 bg-opacity-80 backdrop-saturate-200 backdrop-blur-lg -z-10"></div>
     @navbar(isAuth)
-    <div class="text-white flex flex-col pt-4 px-52 gap-3" id="content">
+    <div class="text-white w-max-full flex flex-col pt-4 px-52 gap-3" id="content">
         <div class="flex items-center">
             <div class="flex flex-col">
                 <h1 class="font-bold font-sans text-4xl">
@@ -42,33 +43,69 @@ templ Movie(movie model.Movie, isAuth bool) {
                 fmt.Sprintf("https://image.tmdb.org/t/p/original/%s", movie.PosterPath) } alt="movie poster" />
             @Frame(movie.Trailer())
         </div>
-            <p class="overview">
-                { movie.Overview }
-            </p>
-            <hr>
+        <p class="overview">
+            { movie.Overview }
+        </p>
+        <hr />
+        <div class="flex items-center">
             <h1 class="text-xl font-bold">Reviews</h1>
-            for review := range slices.Values(movie.Reviews) {
-                <p>{ review.User.Username }</p>
-                <p>{ review.Review }</p>
-            }
+            <button class="flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-md shadow-black bg-indigo-700">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path d="M16 3l5 5-10 10H6v-5L16 3z"></path>
+              </svg>
+              Add Review
+            </button>
+        </div>
+        <hr />
+        for review := range slices.Values(movie.Reviews) {
+        @Review(review)
+        <hr />
+        }
     </div>
 </body>
 }
 
+templ Review(review model.Review) {
+<div class="flex flex-col">
+    <div class="flex gap-2 w-full">
+        <div class="font-bold">{ review.User.Username }</div>
+        <div class="ml-auto">
+            @Rating(review.Rating)
+        </div>
+    </div>
+    <div class="break-words">{ review.Review }</div>
+</div>
+}
+
+templ Rating(rating uint) {
+<div class="flex gap items-center gap-1">
+    <span class="font-bold">
+        { fmt.Sprint(rating) }
+    </span>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+        <path
+            d="M12 16.8l5 3c.7.4 1.4-.2 1.2-.9l-1.3-5.6 4.3-3.7c.6-.5.3-1.4-.4-1.5l-5.6-.4-2.3-5.2c-.3-.7-1.2-.7-1.5 0l-2.3 5.2-5.6.4c-.8.1-1 .9-.4 1.5l4.3 3.7-1.3 5.6c-.2.7.5 1.3 1.2.9z"
+            fill="gold" stroke="gold" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+</div>
+}
+
 templ Ratings(rating float64) {
-<div class="flex  gap-2 items-center">
-    <div class="flex items-end">
-        <div class="font-bold text-xl">
+<div class="flex gap-1 items-center">
+    <div class="flex items-center">
+        <span class="font-bold text-xl mr-1">
             { fmt.Sprintf("%.1f",rating) }
-        </div>
-         <div class="text-gray-300 text-sm">
-            /10
-        </div>
-  </div>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26">
-    <path d="M12 16.8l5 3c.7.4 1.4-.2 1.2-.9l-1.3-5.6 4.3-3.7c.6-.5.3-1.4-.4-1.5l-5.6-.4-2.3-5.2c-.3-.7-1.2-.7-1.5 0l-2.3 5.2-5.6.4c-.8.1-1 .9-.4 1.5l4.3 3.7-1.3 5.6c-.2.7.5 1.3 1.2.9z"
-          fill="gold" stroke="gold" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+        </span>
+        <span class="text-gray-300 text-sm">
+            /<!-- -->
+            10
+        </span>
+    </div>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26">
+        <path
+            d="M12 16.8l5 3c.7.4 1.4-.2 1.2-.9l-1.3-5.6 4.3-3.7c.6-.5.3-1.4-.4-1.5l-5.6-.4-2.3-5.2c-.3-.7-1.2-.7-1.5 0l-2.3 5.2-5.6.4c-.8.1-1 .9-.4 1.5l4.3 3.7-1.3 5.6c-.2.7.5 1.3 1.2.9z"
+            fill="gold" stroke="gold" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
 </div>
 }
 
