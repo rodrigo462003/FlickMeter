@@ -10,13 +10,12 @@ import (
 
 templ Movie(movie model.Movie, isAuth bool) {
 @Base()
-
-<body class="relative flex-col min-h-screen" style={ fmt.Sprintf("background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
+<body class="relative overflow-auto flex-col min-h-screen" style={ fmt.Sprintf("background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
     <div class="h-full absolute inset-0 bg-gray-800 bg-opacity-80 backdrop-saturate-200 backdrop-blur-lg -z-10"></div>
     @navbar(isAuth)
     <div class="text-white w-max-full flex flex-col pt-4 px-52 gap-3" id="content">
         <div class="flex items-center">
-            <div class="flex flex-col">
+            <div class="flex flex-col gap-1">
                 <h1 class="font-bold font-sans text-4xl">
                     { movie.Title }
                 </h1>
@@ -35,13 +34,13 @@ templ Movie(movie model.Movie, isAuth bool) {
                 </div>
             </div>
             <div class="ml-auto">
-                @Ratings(movie.VoteAverage)
+                @ratings(movie.VoteAverage)
             </div>
         </div>
         <div class="flex gap-1 h-[450px] ">
             <img class="h-full rounded-lg w-auto object-cover" id="poster" src={
                 fmt.Sprintf("https://image.tmdb.org/t/p/original/%s", movie.PosterPath) } alt="movie poster" />
-            @Frame(movie.Trailer())
+            @frame(movie.Trailer())
         </div>
         <p class="overview">
             { movie.Overview }
@@ -49,35 +48,86 @@ templ Movie(movie model.Movie, isAuth bool) {
         <hr />
         <div class="flex items-center">
             <h1 class="text-xl font-bold">Reviews</h1>
-            <button class="flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-md shadow-black bg-indigo-700">
+            <button onclick="toggleNewReview()" class="flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-md shadow-black bg-indigo-700">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path d="M16 3l5 5-10 10H6v-5L16 3z"></path>
               </svg>
-              Add Review
+              Review
             </button>
         </div>
+        @newReview(movie.ID)
         <hr />
+        <div id="reviews">
         for review := range slices.Values(movie.Reviews) {
-        @Review(review)
-        <hr />
+        @Review(&review)
         }
+        </div>
     </div>
 </body>
 }
 
-templ Review(review model.Review) {
+templ title(){
+	<div class="text-indigo-700 relative">
+		<input
+			id="title"
+			name="title"
+			class="focus:placeholder-transparent peer placeholder:font-bold placeholder:text-indigo-700 text-gray-800 text-base font-normal border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none focus:outline-indigo-700 block w-full p-2"
+			placeholder="Title"
+			required
+		/>
+        @messageDiv("title", "")
+	</div>
+}
+
+templ reviewInput(){
+	<div class="text-indigo-700 relative">
+		<textarea
+			id="text"
+			name="text"
+            rows="5"
+			class="focus:placeholder-transparent placeholder:font-bold placeholder:text-indigo-700 text-gray-800 text-base font-normal border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none focus:outline-indigo-700 block w-full p-2"
+			placeholder="Review"
+			required
+		/>
+        @messageDiv("review", "")
+	</div>
+}
+
+templ newReview(id int) {
+<form class="hidden" id="newReview">
+    <div class="flex flex-col gap-2">
+    <hr/>
+    <input name="movieID" class="hidden" value={fmt.Sprint(id)}>
+    @title()
+    @reviewInput()
+	<button id="submit" type="submit" hx-post="/movie/newReview" hx-target="#reviews" hx-target-201="#reviews" hx-swap="afterbegin"
+		class="whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-md shadow-black bg-indigo-700"
+        hx-on::after-request="if (event.detail.xhr.status == 201) toggleNewReview();console.log(event.detail)">Submit</button>
+    </div>
+</form>
+<script>
+const div = document.getElementById('newReview')
+function toggleNewReview() {
+    div.classList.toggle('hidden')
+}
+</script>
+}
+
+templ Review(review *model.Review) {
 <div class="flex flex-col">
     <div class="flex gap-2 w-full">
         <div class="font-bold">{ review.User.Username }</div>
         <div class="ml-auto">
-            @Rating(review.Rating)
+            @rating(review.Rating)
         </div>
     </div>
-    <div class="break-words">{ review.Review }</div>
+    <div class="break-words">{ review.Title }</div>
+    <div class="break-words">{ review.Text }</div>
 </div>
+<hr>
 }
 
-templ Rating(rating uint) {
+templ rating(rating uint) {
 <div class="flex gap items-center gap-1">
     <span class="font-bold">
         { fmt.Sprint(rating) }
@@ -90,7 +140,7 @@ templ Rating(rating uint) {
 </div>
 }
 
-templ Ratings(rating float64) {
+templ ratings(rating float64) {
 <div class="flex gap-1 items-center">
     <div class="flex items-center">
         <span class="font-bold text-xl mr-1">
@@ -109,7 +159,7 @@ templ Ratings(rating float64) {
 </div>
 }
 
-templ Frame(trailer *model.Video) {
+templ frame(trailer *model.Video) {
 if trailer != nil {
 <iframe src={ fmt.Sprintf("https://www.youtube.com/embed/%s?autoplay=1&mute=1", trailer.Key) }
     class="h-full w-full rounded-lg" id="videoIframe" title="YouTube video player" frameborder="0"

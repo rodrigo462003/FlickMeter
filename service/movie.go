@@ -9,7 +9,7 @@ import (
 type MovieService interface {
 	Get(movieID string) (movie *model.Movie, err error)
 	Search(query string) (movies []model.Movie, err error)
-	CreateReview(review string, userID, movieID uint) error
+	CreateReview(title, text string, movieID, userID uint) (*model.Review, error)
 }
 
 type movieService struct {
@@ -41,6 +41,11 @@ func (s *movieService) Search(query string) (movies []model.Movie, err error) {
 	return movies, err
 }
 
-func (s *movieService) CreateReview(review string, userID, movieID uint) error {
-	return s.reviewStore.Create(model.NewReview(review, userID, movieID))
+func (s *movieService) CreateReview(title, text string, userID, movieID uint) (*model.Review, error) {
+	review := model.NewReview(title, text, userID, movieID)
+	if err := s.reviewStore.Create(review); err != nil {
+		return nil, err
+	}
+
+	return review, nil
 }

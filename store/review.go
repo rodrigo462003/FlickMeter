@@ -21,7 +21,13 @@ func NewReviewStore(db *gorm.DB) *reviewStore {
 }
 
 func (rs *reviewStore) Create(review *model.Review) error {
-	return rs.db.Create(&review).Error
+	if err := rs.db.Create(&review).Error; err != nil {
+		return err
+	}
+
+	return rs.db.Preload("User", func(tx *gorm.DB) *gorm.DB {
+		return tx.Omit("password", "email")
+	}).First(review).Error
 }
 
 func (rs *reviewStore) GetByMovieID(movieID uint) (reviews []model.Review, err error) {
