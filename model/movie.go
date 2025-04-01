@@ -42,14 +42,15 @@ type Review struct {
 	gorm.Model
 	MovieID uint   `gorm:"not null;index;uniqueIndex:idx_movie_user"`
 	UserID  uint   `gorm:"not null;index;uniqueIndex:idx_movie_user"`
-	Review  string `gorm:"type:text;not null"`
+	Title   string `gorm:"type:text;not null"`
+	Text    string `gorm:"type:text;not null"`
 	Rating  uint   `gorm:"not null"`
 
 	User User `gorm:"foreignKey:UserID"`
 }
 
-func NewReview(review string, movieID, userID uint) *Review {
-	return &Review{MovieID: movieID, UserID: userID, Review: review}
+func NewReview(title, text string, movieID, userID uint) *Review {
+	return &Review{MovieID: movieID, UserID: userID, Title: title, Text: text}
 }
 
 type Movie struct {
