@@ -8,6 +8,7 @@ import (
 type ReviewStore interface {
 	Create(*model.Review) error
 	GetByMovieID(movieID uint) (reviews []model.Review, err error)
+	GetReview(movieID, userID uint) (review *model.Review, err error)
 }
 
 type reviewStore struct {
@@ -36,4 +37,16 @@ func (rs *reviewStore) GetByMovieID(movieID uint) (reviews []model.Review, err e
 	}).Where("movie_id = ?", movieID).Find(&reviews).Error
 
 	return reviews, err
+}
+
+func (rs *reviewStore) GetReview(movieID, userID uint) (review *model.Review, err error) {
+	err = rs.db.Where("movie_id = ? AND user_id = ?", movieID, userID).First(&review).Error
+	if err == nil {
+		return review, nil
+	}
+	if err == gorm.ErrRecordNotFound {
+		return &model.Review{}, nil
+	}
+
+	return nil, err
 }

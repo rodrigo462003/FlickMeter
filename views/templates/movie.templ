@@ -10,6 +10,7 @@ import (
 
 templ Movie(movie model.Movie, isAuth bool) {
 @Base()
+
 <body class="relative overflow-auto flex-col min-h-screen" style={ fmt.Sprintf("background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
     <div class="h-full absolute inset-0 bg-gray-800 bg-opacity-80 backdrop-saturate-200 backdrop-blur-lg -z-10"></div>
     @navbar(isAuth)
@@ -48,69 +49,80 @@ templ Movie(movie model.Movie, isAuth bool) {
         <hr />
         <div class="flex items-center">
             <h1 class="text-xl font-bold">Reviews</h1>
-            <button onclick="toggleNewReview()" class="flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-md shadow-black bg-indigo-700">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path d="M16 3l5 5-10 10H6v-5L16 3z"></path>
-              </svg>
-              Review
+            <button hx-params="*" hx-swap="innerHTML" hx-target="#newReviewForm" hx-get={ fmt.Sprintf("%d/review",
+                movie.ID) }
+                onclick="toggleNewReview()"
+                hx-trigger="click[isEmpty()]"
+                class="flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-md shadow-black bg-indigo-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-2" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24" stroke-width="2">
+                    <path d="M16 3l5 5-10 10H6v-5L16 3z"></path>
+                </svg>
+                Review
             </button>
         </div>
-        @newReview(movie.ID)
+        <form class="h-0 overflow-y-hidden duration-500 transition-all" id="newReviewForm"
+        hx-on::after-settle="resetStars();">
+        </form>
+        <script>
+            const reviewForm = document.getElementById('newReviewForm')
+            let empty = true
+
+            function toggleNewReview() {
+                empty = !empty
+                if (empty) {
+                    reviewForm.classList.toggle('h-[340px]')
+                    reviewForm.classList.toggle('h-0')
+                    return
+                }
+                reviewForm.classList.toggle('h-[340px]')
+                reviewForm.classList.toggle('h-0')
+                return
+
+            }
+            function isEmpty() {
+                return !empty
+            }
+        </script>
         <hr />
         <div id="reviews">
-        for review := range slices.Values(movie.Reviews) {
-        @Review(&review)
-        }
+            for review := range slices.Values(movie.Reviews) {
+            @Review(&review)
+            }
         </div>
     </div>
 </body>
 }
 
-templ title(){
-	<div class="text-indigo-700 relative">
-		<input
-			id="title"
-			name="title"
-			class="focus:placeholder-transparent peer placeholder:font-bold placeholder:text-indigo-700 text-gray-800 text-base font-normal border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none focus:outline-indigo-700 block w-full p-2"
-			placeholder="Title"
-			required
-		/>
-        @messageDiv("title", "")
-	</div>
+templ title(title string) {
+<div class="mx-0.5 text-indigo-700 relative">
+    <input id="title" name="title" value={ title }
+        class="focus:placeholder-transparent peer placeholder:font-bold placeholder:text-indigo-700 text-gray-800 text-base font-normal border border-indigo-700 rounded-lg focus:outline-offset-0 focus:outline-none focus:outline-indigo-700 block w-full p-2"
+        placeholder="Title" required />
+    @messageDiv("title", "")
+</div>
 }
 
-templ reviewInput(){
-	<div class="text-indigo-700 relative">
-		<textarea
-			id="text"
-			name="text"
-            rows="5"
-			class="focus:placeholder-transparent placeholder:font-bold placeholder:text-indigo-700 text-gray-800 text-base font-normal border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none focus:outline-indigo-700 block w-full p-2"
-			placeholder="Review"
-			required
-		/>
-        @messageDiv("review", "")
-	</div>
+templ reviewInput(text string) {
+<div class="mx-0.5 text-indigo-700 relative">
+    <textarea id="text" name="text" rows="6"
+        class="resize-none focus:placeholder-transparent placeholder:font-bold placeholder:text-indigo-700 text-gray-800 text-base font-normal border border-indigo-700 rounded-lg focus:outline-offset-0 focus:outline-none focus:outline-indigo-700 block w-full p-2"
+        placeholder="Review" required>{ text } </textarea>
+    @messageDiv("review", "")
+</div>
 }
 
-templ newReview(id int) {
-<form class="hidden" id="newReview">
-    <div class="flex flex-col gap-2">
-    <hr/>
-    <input name="movieID" class="hidden" value={fmt.Sprint(id)}>
-    @title()
-    @reviewInput()
-	<button id="submit" type="submit" hx-post="/movie/newReview" hx-target="#reviews" hx-target-201="#reviews" hx-swap="afterbegin"
-		class="whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-md shadow-black bg-indigo-700"
-        hx-on::after-request="if (event.detail.xhr.status == 201) toggleNewReview();console.log(event.detail)">Submit</button>
-    </div>
-</form>
-<script>
-const div = document.getElementById('newReview')
-function toggleNewReview() {
-    div.classList.toggle('hidden')
-}
-</script>
+templ NewForm(review *model.Review, movieID uint) {
+<div class="flex flex-col gap-2">
+    <hr />
+    @title(review.Title)
+    @reviewInput(review.Text)
+    @stars(review.Rating)
+    <button id="submit" type="submit" hx-post={ fmt.Sprintf("%d/newReview", movieID) } hx-target-201="#reviews"
+        hx-swap="afterbegin"
+        class="pb-4 mx-1 whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-md shadow-black bg-indigo-700"
+        hx-on::after-request="if (event.detail.xhr.status == 201) toggleNewReview()">Submit</button>
+</div>
 }
 
 templ Review(review *model.Review) {
@@ -124,7 +136,7 @@ templ Review(review *model.Review) {
     <div class="break-words">{ review.Title }</div>
     <div class="break-words">{ review.Text }</div>
 </div>
-<hr>
+<hr />
 }
 
 templ rating(rating uint) {
@@ -132,12 +144,67 @@ templ rating(rating uint) {
     <span class="font-bold">
         { fmt.Sprint(rating) }
     </span>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+    @star()
+</div>
+}
+
+templ star() {
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+    <path
+        d="M12 16.8l5 3c.7.4 1.4-.2 1.2-.9l-1.3-5.6 4.3-3.7c.6-.5.3-1.4-.4-1.5l-5.6-.4-2.3-5.2c-.3-.7-1.2-.7-1.5 0l-2.3 5.2-5.6.4c-.8.1-1 .9-.4 1.5l4.3 3.7-1.3 5.6c-.2.7.5 1.3 1.2.9z"
+        fill="gold" stroke="gold" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+}
+
+templ emptyStar(i int) {
+    <button type="button" onclick={templ.JSFuncCall("newBase", i) }>
+    <svg class="buttonStar cursor-pointer" onmouseover={ templ.JSFuncCall("starsHover", i) }  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
         <path
             d="M12 16.8l5 3c.7.4 1.4-.2 1.2-.9l-1.3-5.6 4.3-3.7c.6-.5.3-1.4-.4-1.5l-5.6-.4-2.3-5.2c-.3-.7-1.2-.7-1.5 0l-2.3 5.2-5.6.4c-.8.1-1 .9-.4 1.5l4.3 3.7-1.3 5.6c-.2.7.5 1.3 1.2.9z"
-            fill="gold" stroke="gold" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            fill="" stroke="gold" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
     </svg>
+</button>
+}
+
+templ stars(rating uint) {
+<div class="flex" onmouseleave="resetStars()">
+    for i := range 10 {
+    @emptyStar(i)
+    }
 </div>
+<input name="rating" id="starInput" class="hidden" />
+@templ.Raw(fmt.Sprintf("<script>var base = %d</script>", rating))
+<script>
+    function starsHover(i) {
+        const stars = document.getElementsByClassName("buttonStar");
+        const starInput = document.getElementById("starInput");
+        let j = 0
+        for (; j < i + 1; j++) {
+            stars[j].firstChild.setAttribute("fill", "gold");
+        }
+        for (; j < 10; j++) {
+            stars[j].firstChild.setAttribute("fill", "");
+        }
+    }
+
+    function newBase(i) {
+        base = i + 1;
+        resetStars();
+    }
+
+    function resetStars() {
+        const stars = document.getElementsByClassName("buttonStar");
+        const starInput = document.getElementById("starInput");
+        let j = 0
+        starInput.value = base
+        for (; j < base; j++) {
+            stars[j].firstChild.setAttribute("fill", "gold");
+        }
+        for (; j < 10; j++) {
+            stars[j].firstChild.setAttribute("fill", "");
+        }
+    }
+</script>
 }
 
 templ ratings(rating float64) {
