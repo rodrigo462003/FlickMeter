@@ -7,9 +7,10 @@ import (
 )
 
 type MovieService interface {
-	Get(movieID string) (movie *model.Movie, err error)
+	Get(movieID uint) (movie *model.Movie, err error)
 	Search(query string) (movies []model.Movie, err error)
-	CreateReview(title, text string, movieID, userID uint) (*model.Review, error)
+	CreateReview(title, text string, rating, movieID, userID uint) (*model.Review, error)
+	GetReview(movieID uint, userID uint) (*model.Review, error)
 }
 
 type movieService struct {
@@ -21,7 +22,11 @@ func NewMovieService(token string, store store.ReviewStore) *movieService {
 	return &movieService{movieAPI.NewMovieGet(token), store}
 }
 
-func (s *movieService) Get(movieID string) (movie *model.Movie, err error) {
+func (s *movieService) GetReview(movieID, userID uint) (*model.Review, error) {
+	return s.reviewStore.GetReview(movieID, userID)
+}
+
+func (s *movieService) Get(movieID uint) (movie *model.Movie, err error) {
 	movie, err = s.fetcher.Get(movieID)
 	if err != nil {
 		return nil, err
@@ -41,8 +46,12 @@ func (s *movieService) Search(query string) (movies []model.Movie, err error) {
 	return movies, err
 }
 
-func (s *movieService) CreateReview(title, text string, userID, movieID uint) (*model.Review, error) {
-	review := model.NewReview(title, text, userID, movieID)
+func (s *movieService) CreateReview(title, text string, rating, userID, movieID uint) (*model.Review, error) {
+	review := model.NewReview(title, text, rating, userID, movieID)
+	if err := review.Validate(); err != nil {
+		return nil, NewValidationError(err.Error(), ErrUnprocessable)
+	}
+
 	if err := s.reviewStore.Create(review); err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"slices"
 	"time"
 
@@ -49,8 +50,16 @@ type Review struct {
 	User User `gorm:"foreignKey:UserID"`
 }
 
-func NewReview(title, text string, movieID, userID uint) *Review {
-	return &Review{MovieID: movieID, UserID: userID, Title: title, Text: text}
+func NewReview(title, text string, rating, movieID, userID uint) *Review {
+	return &Review{MovieID: movieID, UserID: userID, Title: title, Text: text, Rating: rating}
+}
+
+func (r *Review) Validate() error {
+	if r.Rating <= 0 || r.Rating > 10 {
+		return errors.New("Invalid Rating, must be in bigger than 0 and at most to 10.")
+	}
+
+	return nil
 }
 
 type Movie struct {
