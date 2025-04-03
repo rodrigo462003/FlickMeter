@@ -39,7 +39,7 @@ func main() {
 
 	authMiddleware := userHandler.AuthMiddleware()
 	e.Static("/public", "./public")
-	e.GET("/", handlers.GetHome, authMiddleware)
+	e.GET("/", movieHandler.Home, authMiddleware)
 
 	userHandler.Register(e.Group("/user"))
 

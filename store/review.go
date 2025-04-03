@@ -3,10 +3,11 @@ package store
 import (
 	"github.com/rodrigo462003/FlickMeter/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ReviewStore interface {
-	Create(*model.Review) error
+	Update(*model.Review) error
 	GetByMovieID(movieID uint) (reviews []model.Review, err error)
 	GetReview(movieID, userID uint) (review *model.Review, err error)
 }
@@ -21,14 +22,17 @@ func NewReviewStore(db *gorm.DB) *reviewStore {
 	}
 }
 
-func (rs *reviewStore) Create(review *model.Review) error {
-	if err := rs.db.Create(&review).Error; err != nil {
+func (rs *reviewStore) Update(review *model.Review) error {
+	if err := rs.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "user_id"}, {Name: "movie_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"title", "text", "rating"}),
+	}).Create(review).Error; err != nil {
 		return err
 	}
 
 	return rs.db.Preload("User", func(tx *gorm.DB) *gorm.DB {
 		return tx.Omit("password", "email")
-	}).First(review).Error
+	}).First(&review).Error
 }
 
 func (rs *reviewStore) GetByMovieID(movieID uint) (reviews []model.Review, err error) {

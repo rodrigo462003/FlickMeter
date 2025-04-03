@@ -13,6 +13,9 @@ import (
 type MovieFetcher interface {
 	Get(id uint) (movie *model.Movie, err error)
 	Search(query string) (movies []model.Movie, err error)
+	Hot(week bool) []model.Movie
+	Top() []model.Movie
+	Related(movieID uint) ([]model.Movie)
 }
 
 type movieClient struct {
@@ -44,6 +47,99 @@ func NewMovieGet(token string) *movieClient {
 			Transport: newTransport(token),
 		},
 	}
+}
+
+func (c *movieClient) Related(id uint) []model.Movie {
+	url := fmt.Sprintf("https://api.themoviedb.org/3/movie/%d/similar", id)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil
+	}
+
+	res, err := c.http.Do(req)
+	if err != nil {
+		return nil
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil
+	}
+
+	response := struct {
+		Results []model.Movie `json:"results"`
+	}{}
+
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil
+	}
+
+	return response.Results
+}
+
+func (c *movieClient) Top() []model.Movie {
+	url := "https://api.themoviedb.org/3/movie/top_rated"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil
+	}
+
+	res, err := c.http.Do(req)
+	if err != nil {
+		return nil
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil
+	}
+
+	response := struct {
+		Results []model.Movie `json:"results"`
+	}{}
+
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil
+	}
+
+	return response.Results
+}
+
+func (c *movieClient) Hot(week bool) []model.Movie {
+	url := "https://api.themoviedb.org/3/trending/movie/day"
+	if week {
+		url = "https://api.themoviedb.org/3/trending/movie/week"
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil
+	}
+
+	res, err := c.http.Do(req)
+	if err != nil {
+		return nil
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil
+	}
+
+	response := struct {
+		Results []model.Movie `json:"results"`
+	}{}
+
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil
+	}
+
+	return response.Results
 }
 
 func (c *movieClient) Get(id uint) (*model.Movie, error) {

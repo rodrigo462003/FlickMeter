@@ -5,8 +5,8 @@ import "fmt"
 
 templ Results(movies []model.Movie) {
 	for _, movie := range movies {
-		<a href={ templ.SafeURL(fmt.Sprintf("/movie/%d", movie.ID)) } type="button" class="items-center gap-2 flex">
-			<img width="50" src={ "https://image.tmdb.org/t/p/original/" + movie.PosterPath } alt={ movie.Title + "poster" }/>
+		<a href={ templ.SafeURL(fmt.Sprintf("/movie/%d/", movie.ID)) } type="button" class="items-center gap-2 flex">
+			<img width="50" src={ fmt.Sprintf("https://image.tmdb.org/t/p/original/%s", movie.PosterPath) } alt={ movie.Title + "poster" }/>
 			<h>
 				{ movie.Title }
 			</h>
@@ -39,7 +39,7 @@ templ search() {
                 w-full p-2 pr-6"
 					name="search"
 					hx-post="/movie/search"
-					hx-trigger="input changed delay:500ms, focus[isResultsEmpty()]"
+					hx-trigger="input changed delay:100ms, focus[isResultsEmpty()]"
 					hx-target="#search-results"
 				/>
 				<svg
@@ -71,7 +71,7 @@ templ navbar(isAuth bool) {
 		<div id="start" class="w-1/3 justify-start flex">
 			<a
 				href="/"
-				class="text-indigo-700 text-4xl font-extralight"
+				class="focus:outline-indigo-700 text-indigo-700 text-4xl font-extralight"
 				style="font-family: 'Broadway Flat 3D', sans-serif;"
 			>FLICKMETER</a>
 		</div>
@@ -133,7 +133,7 @@ templ profileButton() {
 templ dropDown() {
 	<div
 		id="profileDrop"
-		class="transition-all duration-300 ease-in-out bg-gray-100 hidden absolute right-8 top-6 mt-2 shadow-md rounded-lg p-2"
+		class="transition-all duration-300 ease-in-out bg-gray-100 hidden absolute right-8 top-6 mt-2 shadow-gray-900 shadow-lg rounded-lg p-2"
 	>
 		@dropA("Profile", "")
 		@dropA("Settings", "")

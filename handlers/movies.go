@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -20,10 +21,18 @@ func NewMovieHandler(s service.MovieService) *movieHandler {
 }
 
 func (h *movieHandler) Register(g *echo.Group, authMiddleware echo.MiddlewareFunc) {
-	g.GET("/:id", h.Get, authMiddleware)
+	g.GET("/:id/", h.Get, authMiddleware)
 	g.POST("/search", h.Search)
-	g.POST("/:id/newReview", h.NewReview, authMiddleware)
+	g.POST("/:id/review", h.UpdateReview, authMiddleware)
 	g.GET("/:id/review", h.GetReview, authMiddleware)
+}
+
+func (h *movieHandler) Home(c echo.Context) error {
+	isAuth := c.Get("isAuth").(bool)
+
+	topMovies := h.service.Top()
+
+	return Render(c, http.StatusOK, templates.Home(topMovies, isAuth))
 }
 
 func (h *movieHandler) GetReview(c echo.Context) error {
@@ -42,7 +51,7 @@ func (h *movieHandler) GetReview(c echo.Context) error {
 		return err
 	}
 
-	return Render(c, http.StatusOK, templates.NewForm(review, uint(id)))
+	return Render(c, http.StatusOK, templates.NewForm(review))
 }
 
 func (h *movieHandler) Get(c echo.Context) error {
@@ -57,7 +66,19 @@ func (h *movieHandler) Get(c echo.Context) error {
 	}
 
 	isAuth := c.Get("isAuth").(bool)
-	return Render(c, http.StatusOK, templates.Movie(*movie, isAuth))
+	var userReview *model.Review
+	if isAuth {
+		user := c.Get("user").(*model.User)
+		i := slices.IndexFunc(movie.Reviews, func(r model.Review) bool {
+			return r.UserID == user.ID
+		})
+		if i > -1 {
+			movie.Reviews[i], movie.Reviews[len(movie.Reviews)-1] = movie.Reviews[len(movie.Reviews)-1], movie.Reviews[i]
+			userReview = &movie.Reviews[len(movie.Reviews)-1]
+			movie.Reviews = movie.Reviews[:len(movie.Reviews)-1]
+		}
+	}
+	return Render(c, http.StatusOK, templates.Movie(*movie, isAuth, userReview))
 }
 
 func (h *movieHandler) Search(c echo.Context) error {
@@ -72,7 +93,7 @@ func (h *movieHandler) Search(c echo.Context) error {
 	return Render(c, http.StatusOK, templates.Results(movies))
 }
 
-func (h *movieHandler) NewReview(c echo.Context) error {
+func (h *movieHandler) UpdateReview(c echo.Context) error {
 	form := struct {
 		Title  string `form:"title"`
 		Text   string `form:"text"`
@@ -92,7 +113,7 @@ func (h *movieHandler) NewReview(c echo.Context) error {
 		return echo.ErrUnauthorized.WithInternal(errors.New("Failed to assert context 'user' as a *model.User"))
 	}
 
-	review, err := h.service.CreateReview(form.Title, form.Text, form.Rating, uint(id), user.ID)
+	review, err := h.service.UpdateReview(form.Title, form.Text, form.Rating, uint(id), user.ID)
 	if err != nil {
 		if err, ok := err.(service.ValidationError); ok {
 			return c.String(statusCode(err), err.Message())
