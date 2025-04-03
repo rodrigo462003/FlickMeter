@@ -50,6 +50,12 @@ type Review struct {
 	User User `gorm:"foreignKey:UserID"`
 }
 
+type TopMovies struct {
+	HotDay  []Movie
+	HotWeek []Movie
+	AllTime []Movie
+}
+
 func NewReview(title, text string, rating, movieID, userID uint) *Review {
 	return &Review{MovieID: movieID, UserID: userID, Title: title, Text: text, Rating: rating}
 }
@@ -91,6 +97,7 @@ type Movie struct {
 	VoteCount           int                 `json:"vote_count"`
 	Videos              []Video             `json:"videos"`
 	Reviews             []Review
+	Related				[]Movie
 }
 
 func (m *Movie) Trailer() *Video {

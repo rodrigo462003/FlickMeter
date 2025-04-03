@@ -37,7 +37,7 @@ func Results(movies []model.Movie) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var2 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/movie/%d", movie.ID))
+			var templ_7745c5c3_Var2 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/movie/%d/", movie.ID))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var2)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -47,9 +47,9 @@ func Results(movies []model.Movie) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("https://image.tmdb.org/t/p/original/" + movie.PosterPath)
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://image.tmdb.org/t/p/original/%s", movie.PosterPath))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/navbar.templ`, Line: 9, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/navbar.templ`, Line: 9, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -62,7 +62,7 @@ func Results(movies []model.Movie) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(movie.Title + "poster")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/navbar.templ`, Line: 9, Col: 113}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/navbar.templ`, Line: 9, Col: 127}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -115,7 +115,7 @@ func search() templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex-grow bg-transparent w-full max-w-md\"><div class=\"relative w-full\"><div class=\"relative w-full flex items-center\"><input id=\"search\" class=\"text-gray-900 font-normal outline-2 bg-transparent placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100\n                hover:placeholder:opacity-100 placeholder:opacity-0 text-sm\n                border border-indigo-700 rounded-md focus:outline-offset-0 outline-none focus:outline-none focus:outline-indigo-700\n                w-full p-2 pr-6\" name=\"search\" hx-post=\"/movie/search\" hx-trigger=\"input changed delay:500ms, focus[isResultsEmpty()]\" hx-target=\"#search-results\"> <svg class=\"text-indigo-700 absolute right-2 w-4 h-4\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010 17.5a7.5 7.5 0 006.65-3.85z\"></path></svg></div><div class=\"overflow-hidden absolute w-full bg-gray-100 mt-1 rounded-md\" id=\"search-results\"></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex-grow bg-transparent w-full max-w-md\"><div class=\"relative w-full\"><div class=\"relative w-full flex items-center\"><input id=\"search\" class=\"text-gray-900 font-normal outline-2 bg-transparent placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100\n                hover:placeholder:opacity-100 placeholder:opacity-0 text-sm\n                border border-indigo-700 rounded-md focus:outline-offset-0 outline-none focus:outline-none focus:outline-indigo-700\n                w-full p-2 pr-6\" name=\"search\" hx-post=\"/movie/search\" hx-trigger=\"input changed delay:100ms, focus[isResultsEmpty()]\" hx-target=\"#search-results\"> <svg class=\"text-indigo-700 absolute right-2 w-4 h-4\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010 17.5a7.5 7.5 0 006.65-3.85z\"></path></svg></div><div class=\"overflow-hidden absolute w-full bg-gray-100 mt-1 rounded-md\" id=\"search-results\"></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -152,7 +152,7 @@ func navbar(isAuth bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"start\" class=\"w-1/3 justify-start flex\"><a href=\"/\" class=\"text-indigo-700 text-4xl font-extralight\" style=\"font-family: &#39;Broadway Flat 3D&#39;, sans-serif;\">FLICKMETER</a></div><div id=\"center\" class=\"w-1/3 justify-center flex \">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"start\" class=\"w-1/3 justify-start flex\"><a href=\"/\" class=\"focus:outline-indigo-700 text-indigo-700 text-4xl font-extralight\" style=\"font-family: &#39;Broadway Flat 3D&#39;, sans-serif;\">FLICKMETER</a></div><div id=\"center\" class=\"w-1/3 justify-center flex \">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -249,7 +249,7 @@ func dropDown() templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div id=\"profileDrop\" class=\"transition-all duration-300 ease-in-out bg-gray-100 hidden absolute right-8 top-6 mt-2 shadow-md rounded-lg p-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div id=\"profileDrop\" class=\"transition-all duration-300 ease-in-out bg-gray-100 hidden absolute right-8 top-6 mt-2 shadow-gray-900 shadow-lg rounded-lg p-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

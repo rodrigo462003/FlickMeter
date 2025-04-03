@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rodrigo462003/FlickMeter/model"
 	"github.com/rodrigo462003/FlickMeter/service"
-	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
 
 func Render(ctx echo.Context, statusCode int, t templ.Component) error {
@@ -76,9 +75,4 @@ func NewCookieAuth(auth *model.Auth) *http.Cookie {
 		SameSite: http.SameSiteStrictMode,
 		Expires:  auth.ExpiresAt,
 	}
-}
-
-func GetHome(c echo.Context) error {
-	isAuth := c.Get("isAuth").(bool)
-	return Render(c, http.StatusOK, templates.Home(isAuth))
 }

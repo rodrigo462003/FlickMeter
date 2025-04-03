@@ -9,8 +9,9 @@ import (
 type MovieService interface {
 	Get(movieID uint) (movie *model.Movie, err error)
 	Search(query string) (movies []model.Movie, err error)
-	CreateReview(title, text string, rating, movieID, userID uint) (*model.Review, error)
+	UpdateReview(title, text string, rating, movieID, userID uint) (*model.Review, error)
 	GetReview(movieID uint, userID uint) (*model.Review, error)
+	Top() *model.TopMovies
 }
 
 type movieService struct {
@@ -20,6 +21,14 @@ type movieService struct {
 
 func NewMovieService(token string, store store.ReviewStore) *movieService {
 	return &movieService{movieAPI.NewMovieGet(token), store}
+}
+
+func (s *movieService) Top() *model.TopMovies {
+	return &model.TopMovies{
+		HotDay:  s.fetcher.Hot(false),
+		HotWeek: s.fetcher.Hot(true),
+		AllTime: s.fetcher.Top(),
+	}
 }
 
 func (s *movieService) GetReview(movieID, userID uint) (*model.Review, error) {
@@ -36,8 +45,10 @@ func (s *movieService) Get(movieID uint) (movie *model.Movie, err error) {
 	if err != nil {
 		return nil, err
 	}
-
 	movie.Reviews = reviews
+
+	movie.Related = s.fetcher.Related(uint(movie.ID))
+
 	return movie, nil
 }
 
@@ -46,13 +57,13 @@ func (s *movieService) Search(query string) (movies []model.Movie, err error) {
 	return movies, err
 }
 
-func (s *movieService) CreateReview(title, text string, rating, userID, movieID uint) (*model.Review, error) {
+func (s *movieService) UpdateReview(title, text string, rating, userID, movieID uint) (*model.Review, error) {
 	review := model.NewReview(title, text, rating, userID, movieID)
 	if err := review.Validate(); err != nil {
 		return nil, NewValidationError(err.Error(), ErrUnprocessable)
 	}
 
-	if err := s.reviewStore.Create(review); err != nil {
+	if err := s.reviewStore.Update(review); err != nil {
 		return nil, err
 	}
 

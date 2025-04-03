@@ -1,8 +1,51 @@
 package templates
 
-templ Home(isAuth bool) {
+import (
+"fmt"
+
+"github.com/rodrigo462003/FlickMeter/model"
+)
+
+templ Home(topMovies *model.TopMovies, isAuth bool) {
 @Base()
 @BaseBody() {
 @navbar(isAuth)
+<div class="flex flex-col gap-10 pt-[4%] px-[10%]">
+    @listWithTitle("hot today",topMovies.HotDay)
+    @listWithTitle("hot this week", topMovies.HotWeek)
+    @listWithTitle("top all time", topMovies.AllTime)
+</div>
 }
+}
+
+templ listWithTitle(title string, movies []model.Movie) {
+    <div>
+    @listTitle(title)
+    @movieList(movies)
+    </div>
+}
+
+templ listTitle(title string) {
+    <h1 style="font-family: 'Broadway Flat 3D', sans-serif;"
+        class="text-indigo-700 uppercase font-extrabold text-4xl font-sans">{ title }</h1>
+}
+
+templ movieList(movies []model.Movie) {
+    <div class="h-60 py-2 flex gap-4 overflow-auto whitespace-nowrap">
+        for _, movie := range movies {
+        @movieA(&movie)
+        }
+    </div>
+}
+
+templ movieA(movie *model.Movie) {
+<a class="active:scale-90 transition-transform focus:outline-8 focus:outline-indigo-700 overflow-clip rounded-md shadow-grey-900 shadow-md"
+    href={ templ.SafeURL(fmt.Sprintf("/movie/%d/", movie.ID)) }>
+    @moviePoster(movie.PosterPath)
+</a>
+}
+
+templ moviePoster(posterPath string) {
+<img loading="lazy" alt="Movie Poster" onload="this.classList.toggle('opacity-0')" class="h-full max-w-fit opacity-0"
+    src={ fmt.Sprintf("https://image.tmdb.org/t/p/original/%s", posterPath) } />
 }
