@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "es2016",                       // OK for modern browsers (ES6+)
+    "module": "esnext",                       // Use modern ES modules
+    "moduleResolution": "node",               // Resolves modules like Node.js
+    "outDir": "./public/",                    // Output directory for compiled JS
+    "esModuleInterop": true,                  // Allow CommonJS interop
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "views/templates/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

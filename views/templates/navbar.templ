@@ -12,19 +12,6 @@ templ Results(movies []model.Movie) {
 			</h>
 		</a>
 	}
-	<script>
-    const results = document.getElementById('search-results');
-    const search = document.getElementById('search');
-    document.addEventListener('click', (event) => {
-        if (!results.contains(event.target) && !search.contains(event.target)) {
-            results.innerHTML = "";
-        }
-    });
-
-    function isResultsEmpty() {
-        return results.innerHTML == "";
-    }
-</script>
 }
 
 templ search() {
@@ -92,7 +79,6 @@ templ navbar(isAuth bool) {
 templ profileButton() {
 	<div class="flex relative">
 		<button
-			onclick="toggleDrop()"
 			id="profileButton"
 			type="button"
 			class="top-1/2 transition-transform active:scale-90
@@ -114,26 +100,12 @@ templ profileButton() {
 		</button>
 		@dropDown()
 	</div>
-	<script>
-    const dropDown = document.getElementById('profileDrop');
-    const button = document.getElementById('profileButton');
-
-    function toggleDrop() {
-        dropDown.classList.toggle('hidden');
-    }
-
-    document.addEventListener('click', (event) => {
-        if (!dropDown.contains(event.target) && !button.contains(event.target)) {
-            dropDown.classList.add('hidden');
-        }
-    });
-</script>
 }
 
 templ dropDown() {
 	<div
 		id="profileDrop"
-		class="transition-all duration-300 ease-in-out bg-gray-100 hidden absolute right-8 top-6 mt-2 shadow-gray-900 shadow-lg rounded-lg p-2"
+		class="transition-all duration-300 ease-in-out bg-gray-100 hidden absolute right-8 top-6 mt-2 shadow-lg rounded-lg p-2"
 	>
 		@dropA("Profile", "")
 		@dropA("Settings", "")

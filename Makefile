@@ -12,6 +12,9 @@ redis:
 	sudo systemctl start redis.service
 	redis-server --daemonize yes
 
+live/ts:
+	npx tsc --project tsconfig.json --watch
+
 live/templ:
 	templ generate --watch --proxy="http://localhost:8080" --open-browser=false -v
 
@@ -36,7 +39,7 @@ live/sync_assets:
 	--build.include_ext "js,css"
 
 live:
-	make -j4 live/templ live/server live/tailwind live/sync_assets
+	make -j5 live/ts live/templ live/server live/tailwind live/sync_assets
 
 all:
 	make redis
