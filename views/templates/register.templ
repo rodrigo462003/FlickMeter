@@ -47,57 +47,11 @@ templ FormVerifyCode(email string, message string) {
 			</div>
 		</div>
 		<div class="w-full flex flex-col items-center items justify-center">
-			<form id="form" class="w-full flex flex-col flex-grow text-indigo-700 space-y-4">
+			<form id="digitForm" class="w-full flex flex-col flex-grow text-indigo-700 space-y-4">
 				<div class="w-full max-w-full flex space-x-2 md:space-x-4">
 					for range 6 {
 						@digitInput()
 					}
-					<script>
-                    setupDigitInputs();
-                    function setupDigitInputs() {
-                        let digitInputs = document.getElementsByClassName('digitInput');
-                        for (const input of digitInputs) {
-                            input.addEventListener('beforeinput', event => {
-                                moveFocus(event, input)
-                            });
-                        }
-                    }
-
-                    function moveFocus(e, input) {
-                        e.preventDefault()
-                        if (e.inputType === "deleteContentBackward" || e.inputType === "deleteContentForward") {
-                            if (input.value.length === 0) {
-                                let prevInput = input.previousElementSibling;
-                                if (prevInput && prevInput.tagName === "INPUT") {
-                                    prevInput.focus();
-                                }
-                            } else {
-                                input.value = ""
-                                let prevInput = input.previousElementSibling;
-                                if (prevInput && prevInput.tagName === "INPUT") {
-                                    prevInput.focus();
-                                }
-                            }
-                            return
-                        }
-                        const isNumber = /^[0-9]$/i.test(event.data)
-                        if (isNumber) {
-                            if (input.value.length === 1) {
-                                let nextInput = input.nextElementSibling;
-                                if (nextInput && nextInput.tagName === "INPUT") {
-                                    nextInput.focus();
-                                    nextInput.value = e.data;
-                                }
-                            } else {
-                                input.value = e.data
-                                let nextInput = input.nextElementSibling;
-                                if (nextInput && nextInput.tagName === "INPUT") {
-                                    nextInput.focus();
-                                }
-                            }
-                        }
-                    }
-                </script>
 				</div>
 			</form>
 		</div>

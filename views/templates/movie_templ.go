@@ -175,12 +175,12 @@ func Movie(movie model.Movie, isAuth bool, userReview *model.Review) templ.Compo
 			return templ_7745c5c3_Err
 		}
 		if isAuth {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<button hx-params=\"*\" hx-swap=\"innerHTML\" hx-target=\"#newReviewForm\" hx-get=\"review\" onclick=\"toggleNewReview()\" hx-trigger=\"click[isEmpty()]\" class=\"flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-gray-900 shadow-lg bg-indigo-700\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 mr-2\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" stroke-width=\"2\"><path d=\"M16 3l5 5-10 10H6v-5L16 3z\"></path></svg> Review</button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<button id=\"newReviewButton\" hx-params=\"*\" hx-swap=\"innerHTML\" hx-target=\"#newReviewForm\" hx-get=\"review\" hx-trigger=\"click[isReviewFormVisible()]\" class=\"flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-lg bg-indigo-700\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 mr-2\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" stroke-width=\"2\"><path d=\"M16 3l5 5-10 10H6v-5L16 3z\"></path></svg> Review</button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div><form class=\"h-0 overflow-y-hidden duration-500 transition-all\" id=\"newReviewForm\" hx-on::after-settle=\"resetStars();\"></form><script>\n            const reviewForm = document.getElementById('newReviewForm')\n            let empty = true\n\n            function toggleNewReview() {\n                empty = !empty\n                if (empty) {\n                    reviewForm.classList.toggle('h-[340px]')\n                    reviewForm.classList.toggle('h-0')\n                    return\n                }\n                reviewForm.classList.toggle('h-[340px]')\n                reviewForm.classList.toggle('h-0')\n                return\n\n            }\n            function isEmpty() {\n                return !empty\n            }\n        </script><hr><div class=\"empty:hidden\" id=\"userReview\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div><!--using peer-empty: just as a way to keep 340px in compile, yes i know theres better ways.--><form class=\"h-0 peer-empty:h-[340px] overflow-y-hidden duration-500 transition-all\" id=\"newReviewForm\"></form><hr><div class=\"empty:hidden\" id=\"userReview\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -245,7 +245,7 @@ func frame(trailer *model.Video) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://www.youtube.com/embed/%s?autoplay=1&mute=1", trailer.Key))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 107, Col: 92}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 86, Col: 92}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -288,7 +288,7 @@ func title(title string) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 116, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 95, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -338,7 +338,7 @@ func reviewInput(text string) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 127, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 106, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -397,7 +397,7 @@ func NewForm(review *model.Review) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<button id=\"submit\" type=\"submit\" hx-post=\"review\" hx-target=\"#userReview\" hx-target-201=\"#userReview\" class=\"mx-1 whitespace-nowrap transition-transform active:scale-95 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-gray-900 shadow-lg bg-indigo-700\" hx-on::after-request=\"if (event.detail.xhr.status == 201) toggleNewReview()\">Submit</button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<button id=\"submit\" type=\"submit\" hx-post=\"review\" hx-target=\"#userReview\" hx-target-201=\"#userReview\" class=\"mx-1 whitespace-nowrap transition-transform active:scale-95 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-lg bg-indigo-700\" hx-on::after-request=\"if (event.detail.xhr.status == 201) toggleNewReview()\">Submit</button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -433,7 +433,7 @@ func Review(review *model.Review) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(review.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 150, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 129, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -446,7 +446,7 @@ func Review(review *model.Review) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(review.User.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 151, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 130, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -467,7 +467,7 @@ func Review(review *model.Review) templ.Component {
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(review.Text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 157, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 136, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -509,7 +509,7 @@ func rating(rating uint) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(rating))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 165, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 144, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -658,10 +658,6 @@ func stars(rating uint) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<script>\n    function starsHover(i) {\n        const stars = document.getElementsByClassName(\"buttonStar\");\n        const starInput = document.getElementById(\"starInput\");\n        let j = 0\n        for (; j < i + 1; j++) {\n            stars[j].firstChild.setAttribute(\"fill-opacity\", \"1\");\n        }\n        for (; j < 10; j++) {\n            stars[j].firstChild.setAttribute(\"fill-opacity\", \"0\");\n        }\n    }\n\n    function newBase(i) {\n        base = i + 1;\n        resetStars();\n    }\n\n    function resetStars() {\n        const stars = document.getElementsByClassName(\"buttonStar\");\n        const starInput = document.getElementById(\"starInput\");\n        let j = 0\n        starInput.value = base\n        for (; j < base; j++) {\n            stars[j].firstChild.setAttribute(\"fill-opacity\", \"1\");\n        }\n        for (; j < 10; j++) {\n            stars[j].firstChild.setAttribute(\"fill-opacity\", \"0\");\n        }\n    }\n</script>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
 		return nil
 	})
 }
@@ -687,20 +683,20 @@ func ratings(rating float64) templ.Component {
 			templ_7745c5c3_Var28 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"flex gap-1 items-center\"><div class=\"flex items-center\"><span class=\"font-bold text-xl mr-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"flex gap-1 items-center\"><div class=\"flex items-center\"><span class=\"font-bold text-xl mr-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var29 string
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f", rating))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 234, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 182, Col: 40}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</span></div><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"26\" height=\"26\"><path d=\"M12 16.8l5 3c.7.4 1.4-.2 1.2-.9l-1.3-5.6 4.3-3.7c.6-.5.3-1.4-.4-1.5l-5.6-.4-2.3-5.2c-.3-.7-1.2-.7-1.5 0l-2.3 5.2-5.6.4c-.8.1-1 .9-.4 1.5l4.3 3.7-1.3 5.6c-.2.7.5 1.3 1.2.9z\" fill=\"gold\" stroke=\"gold\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</span></div><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"26\" height=\"26\"><path d=\"M12 16.8l5 3c.7.4 1.4-.2 1.2-.9l-1.3-5.6 4.3-3.7c.6-.5.3-1.4-.4-1.5l-5.6-.4-2.3-5.2c-.3-.7-1.2-.7-1.5 0l-2.3 5.2-5.6.4c-.8.1-1 .9-.4 1.5l4.3 3.7-1.3 5.6c-.2.7.5 1.3 1.2.9z\" fill=\"gold\" stroke=\"gold\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

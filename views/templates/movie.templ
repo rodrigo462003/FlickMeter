@@ -48,10 +48,9 @@ templ Movie(movie model.Movie, isAuth bool, userReview *model.Review) {
         <div class="flex py-3 items-center">
             <h1 class="text-xl font-bold">Reviews</h1>
             if isAuth{
-            <button hx-params="*" hx-swap="innerHTML" hx-target="#newReviewForm" hx-get="review"
-                onclick="toggleNewReview()"
-                hx-trigger="click[isEmpty()]"
-                class="flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-gray-900 shadow-lg bg-indigo-700">
+            <button id="newReviewButton" hx-params="*" hx-swap="innerHTML" hx-target="#newReviewForm" hx-get="review"
+                hx-trigger="click[isReviewFormVisible()]"
+                class="flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-lg bg-indigo-700">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-2" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24" stroke-width="2">
                     <path d="M16 3l5 5-10 10H6v-5L16 3z"></path>
@@ -60,29 +59,9 @@ templ Movie(movie model.Movie, isAuth bool, userReview *model.Review) {
             </button>
             }
         </div>
-        <form class="h-0 overflow-y-hidden duration-500 transition-all" id="newReviewForm"
-        hx-on::after-settle="resetStars();">
+        <!--using peer-empty: just as a way to keep 340px in compile, yes i know theres better ways.-->
+        <form class="h-0 peer-empty:h-[340px] overflow-y-hidden duration-500 transition-all" id="newReviewForm">
         </form>
-        <script>
-            const reviewForm = document.getElementById('newReviewForm')
-            let empty = true
-
-            function toggleNewReview() {
-                empty = !empty
-                if (empty) {
-                    reviewForm.classList.toggle('h-[340px]')
-                    reviewForm.classList.toggle('h-0')
-                    return
-                }
-                reviewForm.classList.toggle('h-[340px]')
-                reviewForm.classList.toggle('h-0')
-                return
-
-            }
-            function isEmpty() {
-                return !empty
-            }
-        </script>
         <hr />
         <div class="empty:hidden" id="userReview">
         if userReview != nil{
@@ -139,7 +118,7 @@ templ NewForm(review *model.Review) {
         hx-post="review"
         hx-target="#userReview"
         hx-target-201="#userReview"
-        class="mx-1 whitespace-nowrap transition-transform active:scale-95 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-gray-900 shadow-lg bg-indigo-700"
+        class="mx-1 whitespace-nowrap transition-transform active:scale-95 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-full text-white text-xl font-extrabold shadow-lg bg-indigo-700"
         hx-on::after-request="if (event.detail.xhr.status == 201) toggleNewReview()">Submit</button>
 </div>
 }
@@ -194,37 +173,6 @@ templ stars(rating uint) {
 </div>
 <input name="rating" id="starInput" class="hidden" />
 @templ.Raw(fmt.Sprintf("<script>var base = %d</script>", rating))
-<script>
-    function starsHover(i) {
-        const stars = document.getElementsByClassName("buttonStar");
-        const starInput = document.getElementById("starInput");
-        let j = 0
-        for (; j < i + 1; j++) {
-            stars[j].firstChild.setAttribute("fill-opacity", "1");
-        }
-        for (; j < 10; j++) {
-            stars[j].firstChild.setAttribute("fill-opacity", "0");
-        }
-    }
-
-    function newBase(i) {
-        base = i + 1;
-        resetStars();
-    }
-
-    function resetStars() {
-        const stars = document.getElementsByClassName("buttonStar");
-        const starInput = document.getElementById("starInput");
-        let j = 0
-        starInput.value = base
-        for (; j < base; j++) {
-            stars[j].firstChild.setAttribute("fill-opacity", "1");
-        }
-        for (; j < 10; j++) {
-            stars[j].firstChild.setAttribute("fill-opacity", "0");
-        }
-    }
-</script>
 }
 
 templ ratings(rating float64) {
