@@ -97,7 +97,7 @@ type Movie struct {
 	VoteCount           int                 `json:"vote_count"`
 	Videos              []Video             `json:"videos"`
 	Reviews             []Review
-	Related				[]Movie
+	Related             []Movie
 }
 
 func (m *Movie) Trailer() *Video {
@@ -108,5 +108,5 @@ func (m *Movie) Trailer() *Video {
 		}
 	}
 
-	return nil
+	return &Video{}
 }

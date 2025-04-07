@@ -1,51 +1,75 @@
 package templates
 
 import (
-"fmt"
+	"fmt"
 
-"github.com/rodrigo462003/FlickMeter/model"
+	"github.com/rodrigo462003/FlickMeter/model"
 )
 
 templ Home(topMovies *model.TopMovies, isAuth bool) {
-@Base()
-@BaseBody() {
-@navbar(isAuth)
-<div class="flex flex-col gap-10 pt-[4%] px-[10%]">
-    @listWithTitle("hot today",topMovies.HotDay)
-    @listWithTitle("hot this week", topMovies.HotWeek)
-    @listWithTitle("top all time", topMovies.AllTime)
-</div>
-}
+	@Base()
+	@BaseBody() {
+		@navbar(isAuth)
+		<div class="flex flex-col gap-10 pt-[4%] px-[10%]">
+			@listWithTitle("hot today", topMovies.HotDay)
+			@listWithTitle("hot this week", topMovies.HotWeek)
+			@listWithTitle("top all time", topMovies.AllTime)
+		</div>
+	}
 }
 
 templ listWithTitle(title string, movies []model.Movie) {
-    <div>
-    @listTitle(title)
-    @movieList(movies)
-    </div>
+	<div>
+		@listTitle(title)
+		@movieList(movies)
+	</div>
 }
 
 templ listTitle(title string) {
-    <h1 style="font-family: 'Broadway Flat 3D', sans-serif;"
-        class="text-indigo-700 uppercase font-extrabold text-4xl font-sans">{ title }</h1>
+	<h1
+		style="font-family: 'Broadway Flat 3D', sans-serif;"
+		class="text-indigo-700 uppercase font-extrabold text-4xl font-sans"
+	>{ title }</h1>
 }
 
 templ movieList(movies []model.Movie) {
-    <div class="h-60 py-2 flex gap-4 overflow-auto whitespace-nowrap">
-        for _, movie := range movies {
-        @movieA(&movie)
-        }
-    </div>
+	<div class="h-60 py-2 flex gap-4 overflow-auto whitespace-nowrap">
+		for _, movie := range movies {
+			@movieA(&movie)
+		}
+	</div>
 }
 
 templ movieA(movie *model.Movie) {
-<a class="active:scale-90 transition-transform focus:outline-8 focus:outline-indigo-700 overflow-clip rounded-md shadow-grey-900 shadow-md"
-    href={ templ.SafeURL(fmt.Sprintf("/movie/%d/", movie.ID)) }>
-    @moviePoster(movie.PosterPath)
-</a>
+	<a
+		class="active:scale-90 transition-transform focus:outline-8 focus:outline-indigo-700 overflow-clip rounded-md shadow-grey-900 shadow-md"
+		href={ templ.SafeURL(fmt.Sprintf("/movie/%d/", movie.ID)) }
+	>
+		@moviePoster(movie.PosterPath)
+	</a>
 }
 
 templ moviePoster(posterPath string) {
-<img loading="lazy" alt="Movie Poster" onload="this.classList.toggle('opacity-0')" class="h-full max-w-fit opacity-0"
-    src={ fmt.Sprintf("https://image.tmdb.org/t/p/original/%s", posterPath) } />
+	if posterPath == "" {
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			class="bg-black rounded-lg"
+			viewBox="0 0 24 24"
+			fill="currentColor"
+			role="presentation"
+		>
+			<path fill="none" d="M0 0h24v24H0V0z"></path>
+			<path
+				d="M18 4v1h-2V4c0-.55-.45-1-1-1H9c-.55 0-1 .45-1 1v1H6V4c0-.55-.45-1-1-1s-1 .45-1 1v16c0 .55.45 1 1 1s1-.45 1-1v-1h2v1c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-1h2v1c0 .55.45 1 1 1s1-.45 1-1V4c0-.55-.45-1-1-1s-1 .45-1 1zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"
+			></path>
+		</svg>
+	} else {
+		<img
+			loading="lazy"
+			alt="Movie Poster"
+			onload="this.classList.toggle('opacity-0')"
+			class="h-full max-w-fit opacity-0"
+			src={ fmt.Sprintf("https://image.tmdb.org/t/p/original%s", posterPath) }
+		/>
+	}
 }
