@@ -9,7 +9,7 @@ import (
 
 templ Movie(movie model.Movie, isAuth bool, userReview *model.Review) {
 @Base()
-<body class="relative overflow-auto flex-col min-h-screen" style={ fmt.Sprintf("background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
+<body hx-ext="response-targets" class="relative overflow-auto flex-col min-h-screen" style={ fmt.Sprintf("background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
     <div class="h-full absolute inset-0 bg-gray-800 bg-opacity-80 backdrop-saturate-200 backdrop-blur-lg -z-10"></div>
     @navbar(isAuth)
     <div class="text-white w-max-full flex flex-col pt-4 px-[10%]" id="content">

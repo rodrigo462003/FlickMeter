@@ -248,7 +248,7 @@ func digitInput() templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<input name=\"code\" maxlength=\"1\" hx-post=\"user/register/verify\" hx-trigger=\"beforeinput changed\" hx-include=\"#form\" hx-target=\"#codeErr\" hx-target-4*=\"#codeErr\" inputmode=\"numeric\" class=\"digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100\n            placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none\n            focus:outline-indigo-700 p-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<input name=\"code\" maxlength=\"1\" hx-post=\"/user/register/verify\" hx-trigger=\"beforeinput changed\" hx-include=\"#form\" hx-target=\"#codeErr\" hx-target-4*=\"#codeErr\" inputmode=\"numeric\" class=\"digitInput w-1/6 text-center placeholder:transition-opacity placeholder:duration-400 focus:placeholder:opacity-100 hover:placeholder:opacity-100\n            placeholder:opacity-0 text-gray-900 font-semibold border border-indigo-700 rounded-md focus:outline-offset-0 focus:outline-none\n            focus:outline-indigo-700 p-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
