@@ -7,11 +7,11 @@ import (
 "strings"
 )
 
-templ Movie(movie model.Movie, isAuth bool, userReview *model.Review) {
+templ Movie(movie model.Movie, user *model.User, userReview *model.Review) {
 @Base()
 <body hx-ext="response-targets" class="relative overflow-auto flex-col min-h-screen" style={ fmt.Sprintf("background-size: cover;background-image: url(https://image.tmdb.org/t/p/original/%s);background-attachment: fixed;", movie.BackdropPath) }>
     <div class="h-full absolute inset-0 bg-gray-800 bg-opacity-80 backdrop-saturate-200 backdrop-blur-lg -z-10"></div>
-    @navbar(isAuth)
+    @navbar(user.ID != 0)
     <div class="text-white w-max-full flex flex-col pt-4 px-[10%]" id="content">
         <div class="items-center flex py-2 gap-1">
             <h1 class="font-bold font-sans text-3xl">
@@ -50,12 +50,12 @@ templ Movie(movie model.Movie, isAuth bool, userReview *model.Review) {
         </p>
         <div class="py-3">
             <h1 class="text-xl font-bold"> Related Movies</h1>
-            @movieList(movie.Related)
+            @movieList(movie.Related, user)
         </div>
         <hr />
         <div class="flex py-3 items-center">
             <h1 class="text-xl font-bold">Reviews</h1>
-            if isAuth{
+            if user.ID != uint(0){
             <button id="newReviewButton" hx-params="*" hx-swap="innerHTML" hx-target="#newReviewForm" hx-get="review"
                 hx-trigger="click[isReviewFormVisible()]"
                 class="flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-lg bg-indigo-700">

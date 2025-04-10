@@ -42,7 +42,10 @@ func (us *userStore) EmailExists(email string) (exists bool, err error) {
 }
 
 func (us *userStore) GetByID(id uint) (user *model.User, err error) {
-	err = us.db.First(&user, id).Error
+	if err = us.db.Preload("Watchlist").First(&user, id).Error; err != nil {
+		return nil, err
+	}
+
 	return user, err
 }
 

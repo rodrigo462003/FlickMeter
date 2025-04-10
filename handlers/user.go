@@ -182,11 +182,9 @@ func (h *userHandler) PostPassword(c echo.Context) error {
 func (h *userHandler) AuthMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			c.Set("isAuth", false)
 			cookie, err := c.Request().Cookie("session")
 			if err == nil {
 				if user, err := h.service.GetUserFromSession(cookie.Value); err == nil {
-					c.Set("isAuth", true)
 					c.Set("user", user)
 					return next(c)
 				}
@@ -206,7 +204,6 @@ func (h *userHandler) AuthMiddleware() echo.MiddlewareFunc {
 				c.SetCookie(NewCookieSession(session))
 			}
 
-			c.Set("isAuth", true)
 			c.Set("user", user)
 			return next(c)
 		}

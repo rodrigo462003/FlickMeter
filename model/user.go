@@ -13,9 +13,10 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"type:varchar(15);unique;not null"`
-	Email    string `gorm:"type:varchar(254);unique;not null"`
-	Password string `gorm:"type:varchar(255);not null"`
+	Username  string      `gorm:"type:varchar(15);unique;not null"`
+	Email     string      `gorm:"type:varchar(254);unique;not null"`
+	Password  string      `gorm:"type:varchar(255);not null"`
+	Watchlist []Watchlist `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 func ValidateUsername(username string) error {

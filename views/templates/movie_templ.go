@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func Movie(movie model.Movie, isAuth bool, userReview *model.Review) templ.Component {
+func Movie(movie model.Movie, user *model.User, userReview *model.Review) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -57,7 +57,7 @@ func Movie(movie model.Movie, isAuth bool, userReview *model.Review) templ.Compo
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = navbar(isAuth).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = navbar(user.ID != 0).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -189,7 +189,7 @@ func Movie(movie model.Movie, isAuth bool, userReview *model.Review) templ.Compo
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = movieList(movie.Related).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = movieList(movie.Related, user).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -197,7 +197,7 @@ func Movie(movie model.Movie, isAuth bool, userReview *model.Review) templ.Compo
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if isAuth {
+		if user.ID != uint(0) {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<button id=\"newReviewButton\" hx-params=\"*\" hx-swap=\"innerHTML\" hx-target=\"#newReviewForm\" hx-get=\"review\" hx-trigger=\"click[isReviewFormVisible()]\" class=\"flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-lg bg-indigo-700\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 mr-2\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" stroke-width=\"2\"><path d=\"M16 3l5 5-10 10H6v-5L16 3z\"></path></svg> Review</button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

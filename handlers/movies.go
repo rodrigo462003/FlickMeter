@@ -28,11 +28,14 @@ func (h *movieHandler) Register(g *echo.Group, authMiddleware echo.MiddlewareFun
 }
 
 func (h *movieHandler) Home(c echo.Context) error {
-	isAuth := c.Get("isAuth").(bool)
+	user, ok := c.Get("user").(*model.User)
+	if !ok {
+		user = &model.User{}
+	}
 
 	topMovies := h.service.Top()
 
-	return Render(c, http.StatusOK, templates.Home(topMovies, isAuth))
+	return Render(c, http.StatusOK, templates.Home(topMovies, user))
 }
 
 func (h *movieHandler) GetReview(c echo.Context) error {
@@ -65,10 +68,12 @@ func (h *movieHandler) Get(c echo.Context) error {
 		return echo.ErrBadRequest.WithInternal(err)
 	}
 
-	isAuth := c.Get("isAuth").(bool)
+	user, ok := c.Get("user").(*model.User)
+	if !ok {
+		user = &model.User{}
+	}
 	var userReview *model.Review
-	if isAuth {
-		user := c.Get("user").(*model.User)
+	if user.ID != 0{
 		i := slices.IndexFunc(movie.Reviews, func(r model.Review) bool {
 			return r.UserID == user.ID
 		})
@@ -78,7 +83,7 @@ func (h *movieHandler) Get(c echo.Context) error {
 			movie.Reviews = movie.Reviews[:len(movie.Reviews)-1]
 		}
 	}
-	return Render(c, http.StatusOK, templates.Movie(*movie, isAuth, userReview))
+	return Render(c, http.StatusOK, templates.Movie(*movie, user, userReview))
 }
 
 func (h *movieHandler) Search(c echo.Context) error {

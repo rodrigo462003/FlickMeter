@@ -1,11 +1,8 @@
 package model
 
 import (
-	"errors"
 	"slices"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Genre struct {
@@ -39,33 +36,10 @@ type Video struct {
 	ID          string    `json:"id"`
 }
 
-type Review struct {
-	gorm.Model
-	MovieID uint   `gorm:"not null;index;uniqueIndex:idx_movie_user"`
-	UserID  uint   `gorm:"not null;index;uniqueIndex:idx_movie_user"`
-	Title   string `gorm:"type:text;not null"`
-	Text    string `gorm:"type:text;not null"`
-	Rating  uint   `gorm:"not null"`
-
-	User User `gorm:"foreignKey:UserID"`
-}
-
 type TopMovies struct {
 	HotDay  []Movie
 	HotWeek []Movie
 	AllTime []Movie
-}
-
-func NewReview(title, text string, rating, movieID, userID uint) *Review {
-	return &Review{MovieID: movieID, UserID: userID, Title: title, Text: text, Rating: rating}
-}
-
-func (r *Review) Validate() error {
-	if r.Rating <= 0 || r.Rating > 10 {
-		return errors.New("Invalid Rating, must be in bigger than 0 and at most to 10.")
-	}
-
-	return nil
 }
 
 type Movie struct {
@@ -75,7 +49,7 @@ type Movie struct {
 	Budget              int                 `json:"budget"`
 	Genres              []Genre             `json:"genres"`
 	Homepage            string              `json:"homepage"`
-	ID                  int                 `json:"id"`
+	ID                  uint                 `json:"id"`
 	IMDBID              string              `json:"imdb_id"`
 	OriginCountry       []string            `json:"origin_country"`
 	OriginalLanguage    string              `json:"original_language"`

@@ -175,7 +175,7 @@ func (c *movieClient) Get(id uint) (*model.Movie, error) {
 	return movie, nil
 }
 
-func (c *movieClient) Videos(id int) ([]model.Video, error) {
+func (c *movieClient) Videos(id uint) ([]model.Video, error) {
 	url := fmt.Sprintf("https://api.themoviedb.org/3/movie/%d/videos", id)
 
 	req, err := http.NewRequest("GET", url, nil)
