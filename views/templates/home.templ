@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/rodrigo462003/FlickMeter/model"
+	"strings"
 )
 
 templ Home(topMovies *model.TopMovies, isAuth bool) {
@@ -33,7 +34,7 @@ templ listTitle(title string) {
 }
 
 templ movieList(movies []model.Movie) {
-	<div class="h-60 py-2 flex gap-4 overflow-auto whitespace-nowrap">
+	<div class="h-60 px-2 pb-3 py-2 flex gap-4 overflow-auto whitespace-nowrap">
 		for _, movie := range movies {
 			@movieA(&movie)
 		}
@@ -42,18 +43,40 @@ templ movieList(movies []model.Movie) {
 
 templ movieA(movie *model.Movie) {
 	<a
-		class="active:scale-90 transition-transform focus:outline-8 focus:outline-indigo-700 overflow-clip rounded-md shadow-grey-900 shadow-md"
+		id="movieA"
+		class="transition-all ease-in-out duration-[250ms] relative hover:brightness-75 hover:scale-105 active:scale-90 focus:outline-8 focus:outline-indigo-700
+    overflow-clip rounded-md shadow-grey-900 shadow-md"
 		href={ templ.SafeURL(fmt.Sprintf("/movie/%d/", movie.ID)) }
 	>
 		@moviePoster(movie.PosterPath)
+		@movieHover(movie)
 	</a>
+}
+
+templ movieHover(movie *model.Movie) {
+	<div
+		class="px-2 hover:py-2 ease-in-out peer-hover:py-2 flex flex-col transition-all duration-[250ms] bg-opacity-70 hover:h-[40%] h-0 bg-black peer-hover:h-[40%] absolute w-full bottom-0"
+	>
+		<div class="font-bold text-white truncate">
+			{ movie.Title }
+		</div>
+		<div class="mt-auto text-white">
+			<div class="flex flex-row">
+				{ strings.Split(movie.ReleaseDate, "-")[0] }
+				<div class="flex items-center flex-row ml-auto gap-1">
+					{ fmt.Sprintf("%.1f", movie.VoteAverage) }
+					@star()
+				</div>
+			</div>
+		</div>
+	</div>
 }
 
 templ moviePoster(posterPath string) {
 	if posterPath == "" {
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			class="bg-black rounded-lg"
+			class="peer bg-black rounded-lg"
 			viewBox="0 0 24 24"
 			fill="currentColor"
 			role="presentation"
@@ -68,7 +91,7 @@ templ moviePoster(posterPath string) {
 			loading="lazy"
 			alt="Movie Poster"
 			onload="this.classList.toggle('opacity-0')"
-			class="h-full max-w-fit opacity-0"
+			class="peer h-full max-w-fit opacity-0"
 			src={ fmt.Sprintf("https://image.tmdb.org/t/p/original%s", posterPath) }
 		/>
 	}

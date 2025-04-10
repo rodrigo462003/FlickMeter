@@ -185,17 +185,25 @@ func Movie(movie model.Movie, isAuth bool, userReview *model.Review) templ.Compo
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</p><hr><div class=\"flex py-3 items-center\"><h1 class=\"text-xl font-bold\">Reviews</h1>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</p><div class=\"py-3\"><h1 class=\"text-xl font-bold\">Related Movies</h1>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = movieList(movie.Related).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div><hr><div class=\"flex py-3 items-center\"><h1 class=\"text-xl font-bold\">Reviews</h1>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if isAuth {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<button id=\"newReviewButton\" hx-params=\"*\" hx-swap=\"innerHTML\" hx-target=\"#newReviewForm\" hx-get=\"review\" hx-trigger=\"click[isReviewFormVisible()]\" class=\"flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-lg bg-indigo-700\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 mr-2\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" stroke-width=\"2\"><path d=\"M16 3l5 5-10 10H6v-5L16 3z\"></path></svg> Review</button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<button id=\"newReviewButton\" hx-params=\"*\" hx-swap=\"innerHTML\" hx-target=\"#newReviewForm\" hx-get=\"review\" hx-trigger=\"click[isReviewFormVisible()]\" class=\"flex ml-auto whitespace-nowrap transition-transform active:scale-90 hover:bg-indigo-800 focus:outline-none focus:shadow-none focus:outline-indigo-700 py-2 px-3 rounded-full text-white font-bold shadow-lg bg-indigo-700\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 mr-2\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\" stroke-width=\"2\"><path d=\"M16 3l5 5-10 10H6v-5L16 3z\"></path></svg> Review</button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div><!--using peer-empty: just as a way to keep 340px in compile, yes i know theres better ways.--><form class=\"h-0 peer-empty:h-[340px] overflow-y-hidden duration-500 transition-all\" id=\"newReviewForm\"></form><hr><div class=\"empty:hidden\" id=\"userReview\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div><!--using peer-empty: just as a way to keep 340px in compile, yes i know theres better ways.--><div class=\"hidden h-[340px]\"></div><form class=\"h-0 overflow-y-hidden duration-500 transition-all\" id=\"newReviewForm\"></form><hr><div class=\"empty:hidden\" id=\"userReview\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -205,7 +213,7 @@ func Movie(movie model.Movie, isAuth bool, userReview *model.Review) templ.Compo
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div><div id=\"reviews\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><div id=\"reviews\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -214,14 +222,6 @@ func Movie(movie model.Movie, isAuth bool, userReview *model.Review) templ.Compo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><div class=\"py-3\"><h1 class=\"text-xl font-bold\">Related Movies</h1>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = movieList(movie.Related).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div></div></body>")
 		if templ_7745c5c3_Err != nil {
@@ -259,7 +259,7 @@ func frame(trailer *model.Video) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://www.youtube.com/embed/%s?autoplay=1&mute=1", trailer.Key))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 89, Col: 92}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 91, Col: 92}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -301,7 +301,7 @@ func title(title string) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 97, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 99, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -351,7 +351,7 @@ func reviewInput(text string) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 108, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 110, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -446,7 +446,7 @@ func Review(review *model.Review) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(review.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 131, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 133, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -459,7 +459,7 @@ func Review(review *model.Review) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(review.User.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 132, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 134, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -480,7 +480,7 @@ func Review(review *model.Review) templ.Component {
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(review.Text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 138, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 140, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -522,7 +522,7 @@ func rating(rating uint) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(rating))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 146, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 148, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -703,7 +703,7 @@ func ratings(rating float64) templ.Component {
 		var templ_7745c5c3_Var29 string
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f", rating))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 184, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/templates/movie.templ`, Line: 186, Col: 40}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {

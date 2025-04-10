@@ -48,6 +48,10 @@ templ Movie(movie model.Movie, isAuth bool, userReview *model.Review) {
         <p class="text-justify py-3">
             { movie.Overview }
         </p>
+        <div class="py-3">
+            <h1 class="text-xl font-bold"> Related Movies</h1>
+            @movieList(movie.Related)
+        </div>
         <hr />
         <div class="flex py-3 items-center">
             <h1 class="text-xl font-bold">Reviews</h1>
@@ -64,7 +68,9 @@ templ Movie(movie model.Movie, isAuth bool, userReview *model.Review) {
             }
         </div>
         <!--using peer-empty: just as a way to keep 340px in compile, yes i know theres better ways.-->
-        <form class="h-0 peer-empty:h-[340px] overflow-y-hidden duration-500 transition-all" id="newReviewForm">
+        <div class="hidden h-[340px]">
+        </div>
+        <form class="h-0 overflow-y-hidden duration-500 transition-all" id="newReviewForm">
         </form>
         <hr />
         <div class="empty:hidden" id="userReview">
@@ -76,10 +82,6 @@ templ Movie(movie model.Movie, isAuth bool, userReview *model.Review) {
             for _, review := range movie.Reviews {
                 @Review(&review)
             }
-        </div>
-        <div class="py-3">
-            <h1 class="text-xl font-bold"> Related Movies</h1>
-            @movieList(movie.Related)
         </div>
     </div>
 </body>
