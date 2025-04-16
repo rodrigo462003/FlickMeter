@@ -26,13 +26,13 @@ templ movieList(movies []model.Movie, user *model.User) {
 }
 
 templ movieA(movie *model.Movie, user *model.User) {
-<div class="relative overflow-clip rounded-md">
-    <a id="movieA" class="peer active:scale-90 focus:outline-8 focus:outline-indigo-700
+<div class="relative overflow-clip flex rounded-md">
+    <a id="movieA" class="peer transition-transform duration-[250ms] active:scale-90 focus:outline-8 focus:outline-indigo-700
     shadow-grey-900 shadow-md" href={ templ.SafeURL(fmt.Sprintf("/movie/%d/", movie.ID)) }>
         @moviePoster(movie.PosterPath)
+        @movieHover(movie)
     </a>
     @toggleWatchlist(movie.ID, user)
-    @movieHover(movie)
 </div>
 }
 
