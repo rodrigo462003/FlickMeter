@@ -23,6 +23,8 @@ type UserService interface {
 	GetUserFromSession(uuid string) (*model.User, error)
 	DeleteSession(uuid string) error
 	DeleteAuth(uuid string) error
+	AddToWatchlist(userID, movieID uint) error
+	RemoveFromWatchlist(userID, movieID uint) error
 }
 
 type userService struct {
@@ -33,6 +35,14 @@ type userService struct {
 
 func NewUserService(us store.UserStore, ss store.SessionStore, es email.EmailSender) *userService {
 	return &userService{us, es, ss}
+}
+
+func (s *userService) AddToWatchlist(userID, movieID uint) error {
+	return s.userStore.AddToWatchlist(userID, movieID)
+}
+
+func (s *userService) RemoveFromWatchlist(userID, movieID uint) error {
+	return s.userStore.RemoveFromWatchlist(userID, movieID)
 }
 
 func (s *userService) DeleteSession(uuid string) error {

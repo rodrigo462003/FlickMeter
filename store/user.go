@@ -19,6 +19,8 @@ type UserStore interface {
 	GetVCodesByEmail(string) ([]model.VerificationCode, error)
 	CreateVCode(*model.VerificationCode) error
 	DeleteVCode(model.VerificationCode) error
+	AddToWatchlist(userID, movieID uint) error
+	RemoveFromWatchlist(userID, movieID uint) error
 }
 
 type userStore struct {
@@ -42,11 +44,29 @@ func (us *userStore) EmailExists(email string) (exists bool, err error) {
 }
 
 func (us *userStore) GetByID(id uint) (user *model.User, err error) {
-	if err = us.db.Preload("Watchlist").First(&user, id).Error; err != nil {
+	if err := us.db.Preload("Watchlist").First(&user, id).Error; err != nil {
 		return nil, err
 	}
 
-	return user, err
+	return user, nil
+}
+
+func (us *userStore) AddToWatchlist(userID, movieID uint) error {
+	if err := us.db.Create(model.NewWatchlistItem(userID, movieID)).Error; err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
+			if strings.Contains(pgErr.Message, "idx_user_movie") {
+				return nil
+			}
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (us *userStore) RemoveFromWatchlist(userID, movieID uint) error {
+	return us.db.Where("user_id=? AND movie_id=?", userID, movieID).
+		Delete(&model.Watchlist{}).Error
 }
 
 func (us *userStore) GetByEmail(email string) (user *model.User, err error) {

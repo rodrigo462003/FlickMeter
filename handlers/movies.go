@@ -25,16 +25,6 @@ func (h *movieHandler) Register(g *echo.Group, authMiddleware echo.MiddlewareFun
 	g.POST("/search", h.Search)
 	g.POST("/:id/review", h.UpdateReview, authMiddleware)
 	g.GET("/:id/review", h.GetReview, authMiddleware)
-	g.POST("/:id/removeFromList", h.RemoveFromList, authMiddleware)
-	g.POST("/:id/addToList", h.AddToList, authMiddleware)
-}
-
-func (h *movieHandler) RemoveFromList(c echo.Context) error {
-	return c.NoContent(http.StatusBadGateway)
-}
-
-func (h *movieHandler) AddToList(c echo.Context) error {
-	return c.NoContent(http.StatusBadGateway)
 }
 
 func (h *movieHandler) Home(c echo.Context) error {

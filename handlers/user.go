@@ -3,9 +3,11 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rodrigo462003/FlickMeter/model"
 	"github.com/rodrigo462003/FlickMeter/service"
 	"github.com/rodrigo462003/FlickMeter/views/templates"
 )
@@ -40,6 +42,44 @@ func (h *userHandler) Register(g *echo.Group) {
 	g.POST("/register/password", h.PostPassword)
 	g.POST("/register/verify", h.PostVerify)
 	g.POST("/signOff", h.PostSignOff, h.AuthRequiredMiddleware())
+	g.GET("/removeFromList/:movieID", h.RemoveFromList, h.AuthMiddleware())
+	g.GET("/addToList/:movieID", h.AddToList, h.AuthMiddleware())
+}
+
+func (h *userHandler) RemoveFromList(c echo.Context) error {
+	user, ok := c.Get("user").(*model.User)
+	if !ok {
+		return echo.ErrUnauthorized.WithInternal(errors.New("Failed to assert context 'user' as a *model.User"))
+	}
+
+	movieID, err := strconv.ParseUint(c.Param("movieID"), 10, 32)
+	if err != nil {
+		return echo.ErrBadRequest.WithInternal(err)
+	}
+
+	if err := h.service.RemoveFromWatchlist(user.ID, uint(movieID)); err != nil {
+		return echo.ErrInternalServerError.WithInternal(err)
+	}
+
+	return Render(c, http.StatusCreated, templates.WatchlistOFF(uint(movieID)))
+}
+
+func (h *userHandler) AddToList(c echo.Context) error {
+	user, ok := c.Get("user").(*model.User)
+	if !ok {
+		return Render(c, http.StatusUnauthorized, templates.SignIn())
+	}
+
+	movieID, err := strconv.ParseUint(c.Param("movieID"), 10, 32)
+	if err != nil {
+		return echo.ErrBadRequest.WithInternal(err)
+	}
+
+	if err := h.service.AddToWatchlist(user.ID, uint(movieID)); err != nil {
+		return echo.ErrInternalServerError.WithInternal(err)
+	}
+
+	return Render(c, http.StatusCreated, templates.WatchlistON(uint(movieID)))
 }
 
 func (h *userHandler) PostSignOff(c echo.Context) error {
