@@ -8,7 +8,6 @@ newReviewButton?.addEventListener('click', () => {
 });
 
 const starsHover = (i: number) => {
-    const stars = document.getElementsByClassName("buttonStar") as HTMLCollectionOf<HTMLButtonElement>;
     let j = 0
     for (; j < i + 1; j++) {
         (stars[j].firstChild as SVGSVGElement).setAttribute("fill-opacity", "1");
@@ -17,15 +16,17 @@ const starsHover = (i: number) => {
         (stars[j].firstChild as SVGSVGElement).setAttribute("fill-opacity", "0");
     }
 }
+(window as any).starsHover = starsHover
 
 const newBase = (i: number) => {
     base = i + 1;
     resetStars();
 }
+(window as any).newBase = newBase
 
+const stars = document.getElementsByClassName("buttonStar") as HTMLCollectionOf<HTMLButtonElement>;
+const starInput = document.getElementById("starInput") as HTMLInputElement | null;
 const resetStars = () => {
-    const stars = document.getElementsByClassName("buttonStar") as HTMLCollectionOf<HTMLButtonElement>;
-    const starInput = document.getElementById("starInput") as HTMLInputElement | null;
     let j = 0
     if (starInput) starInput.value = base.toString()
     for (; j < base; j++) {
@@ -35,10 +36,9 @@ const resetStars = () => {
         (stars[j].firstChild as SVGSVGElement).setAttribute("fill-opacity", "0");
     }
 }
+(window as any).resetStars = resetStars
 
 reviewForm?.addEventListener('htmx:after-settle', resetStars);
-
-
 (window as any).isReviewFormVisible = () => {
     return !reviewForm?.classList.contains('h-0');
 };
