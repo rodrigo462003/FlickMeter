@@ -125,7 +125,6 @@ templ dropDown() {
 		class="transition-all duration-300 ease-in-out bg-gray-100 hidden absolute right-8 top-6 mt-2 shadow-lg rounded-lg p-2"
 	>
 		@dropA("Profile", "")
-		@dropA("Settings", "")
 		@dropA("Sign out", "/user/signOff")
 	</div>
 }
@@ -134,7 +133,7 @@ templ dropA(content, route string) {
 	<button
 		type="button"
 		hx-post={ route }
-		class="text-left w-full block transition-transform active:scale-90 focus:outline-none
+		class="whitespace-nowrap text-left w-full block transition-transform active:scale-90 focus:outline-none
     hover:bg-gray-100 focus:shadow-none focus:outline-indigo-700 py-2 px-4 rounded-md text-indigo-700"
 	>
 		{ content }
